@@ -16,8 +16,18 @@
 
 import pandas as pd
 import json
+import os
 
 def parse_metrics(metrics):
+    """
+    Parses the metrics of a reflection into a dictionary that can be turned into a DataFrame row.
+
+    Args:
+        metrics (list): A list of dictionaries each representing a metric of a reflection.
+
+    Returns:
+        dict: A dictionary where the keys are the metric names and the values are the metric values.
+    """
     df_row = {}
     for metric in metrics:
         if metric['recorded']:
@@ -36,6 +46,16 @@ def parse_metrics(metrics):
     return df_row
 
 def parse_reflection(reflection):
+    """
+    Parses an individual reflection into a DataFrame.
+
+    Args:
+        reflection (dict): A dictionary representing a reflection.
+
+    Returns:
+        str: The name of the reflection.
+        pd.DataFrame: A DataFrame where each row corresponds to a reflection instance and each column corresponds to a metric.
+    """
     name = reflection['name']
     date = reflection['date']
     metrics = parse_metrics(reflection['metrics'])
@@ -45,6 +65,15 @@ def parse_reflection(reflection):
     return name, pd.DataFrame([metrics])
 
 def parse_json(json_string):
+    """
+    Parses a JSON string into a map from reflection names to DataFrames.
+
+    Args:
+        json_string (str): A JSON string.
+
+    Returns:
+        dict: A map where the keys are the reflection names and the values are DataFrames.
+    """
     data = json.loads(json_string)
     reflections_map = {}
     for reflection in data:
@@ -54,3 +83,20 @@ def parse_json(json_string):
         else:
             reflections_map[name] = df
     return reflections_map
+
+def save_dataframes_to_csv(reflections_map, output_folder, filter_list=None):
+    """
+    Saves each DataFrame in the reflections_map to a CSV file.
+
+    Args:
+        reflections_map (dict): A map where the keys are the reflection names and the values are DataFrames.
+        output_folder (str): The path to the folder where the CSV files will be saved.
+        filter_list (list, optional): A list of reflection names. Only the reflections with names in this list will be saved. Defaults to None.
+
+    Returns:
+        None
+    """
+    if filter_list is not None:
+        reflections_map = {k: v for k, v in reflections_map.items() if k in filter_list}
+    for name, df in reflections_map.items():
+        df.to_csv(os.path.join(output_folder, f'{name}.csv'), index=False)
