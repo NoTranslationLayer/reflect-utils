@@ -1,19 +1,3 @@
-# initialize an empty map of reflection name to dataframe
-# load Reflections JSON with list of reflection instances
-# iterate through list of reflection instances
-# if the reflection name is new, create a dataframe for that reflection and add it to the map
-# for each reflection instance, iterate through list of metrics
-# each reflection instance corresponds to a row in that reflection's dataframe
-# the metric "kind" field determines how the value is parsed from JSON
-# each metric corresponds to a column in the reflection dataframe
-# to get the name of the column, use the "kind", <kind>, "_0", "name" value
-# if the metric "recorded" is false, leave the cell empty
-# if the metric kind is "choice", parse "kind", "_0", "choice", "value" 
-# if the metric kind is "bool", parse "bool", "_0", "bool"
-# if the metric kind is "unit", parse "unit", "_0", "value" 
-# if the metric kind is "rating", parse "rating", "_0", "score" 
-# if the metric kind is "string", parse "string", "_0", "string"
-
 import pandas as pd
 import json
 import os
