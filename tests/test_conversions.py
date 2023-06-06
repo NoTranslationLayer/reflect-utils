@@ -3,8 +3,7 @@ import os
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-# Assuming the functions are defined here
-# import your_module_name 
+from reflect import conversions as conv
 
 class TestParsingFunctions(unittest.TestCase):
     def setUp(self):
@@ -102,13 +101,13 @@ class TestParsingFunctions(unittest.TestCase):
         })
 
     def test_parse_json(self):
-        reflections_map = your_module_name.parse_json(self.json_string)
+        reflections_map = conv.parse_json(self.json_string)
         actual_df = reflections_map['test_name']
         assert_frame_equal(actual_df, self.expected_df)
 
     def test_save_dataframes_to_csv(self):
         reflections_map = {'test_name': self.expected_df}
-        your_module_name.save_dataframes_to_csv(reflections_map, '.')
+        conv.save_dataframes_to_csv(reflections_map, '.')
         self.assertTrue(os.path.exists('test_name.csv'))
 
     def tearDown(self):
