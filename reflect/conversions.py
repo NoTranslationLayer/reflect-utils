@@ -12,22 +12,29 @@ def parse_metrics(metrics):
     Returns:
         dict: A dictionary where the keys are the metric names and the values are the metric values.
     """
-    df_row = {}
+    metric_dict = {}
+
     for metric in metrics:
-        if metric['recorded']:
-            kind = list(metric['kind'].keys())[0]
-            column_name = metric['kind'][kind]['_0']['name']
-            if kind == 'choice':
-                df_row[column_name] = metric['kind'][kind]['_0']['choice']
-            elif kind == 'bool':
-                df_row[column_name] = metric['kind'][kind]['_0']['bool']
-            elif kind == 'unit':
-                df_row[column_name] = metric['kind'][kind]['_0']['value']
-            elif kind == 'rating':
-                df_row[column_name] = metric['kind'][kind]['_0']['score']
-            elif kind == 'string':
-                df_row[column_name] = metric['kind'][kind]['_0']['string']
-    return df_row
+        metric_kind = list(metric['kind'].keys())[0]
+        metric_info = metric['kind'][metric_kind]['_0']
+
+        if 'recorded' not in metric or metric['recorded']:
+            try:
+                    if metric_kind == 'string':
+                        metric_dict[metric_info['name']] = metric_info['string']
+                    elif metric_kind == 'choice':
+                        metric_dict[metric_info['name']] = metric_info['choice']
+                    elif metric_kind == 'bool':
+                        metric_dict[metric_info['name']] = metric_info['bool']
+                    elif metric_kind == 'unit':
+                        metric_dict[metric_info['name']] = metric_info['value']
+                    elif metric_kind == 'rating':
+                        metric_dict[metric_info['name']] = metric_info['score']
+            except KeyError:
+                # print(f"KeyError encountered with the following metric: {json.dumps(metric, indent=2)}")
+                metric_dict[metric_info['name']] = None
+
+    return metric_dict
 
 def parse_reflection(reflection):
     """
@@ -43,9 +50,9 @@ def parse_reflection(reflection):
     name = reflection['name']
     date = reflection['date']
     metrics = parse_metrics(reflection['metrics'])
-    metrics['date'] = date
-    metrics['id'] = reflection['id']
-    metrics['notes'] = reflection['notes']
+    metrics['Date'] = date
+    metrics['ID'] = reflection['id']
+    metrics['Notes'] = reflection.get('notes')
     return name, pd.DataFrame([metrics])
 
 def parse_json(json_string):
