@@ -1,16 +1,18 @@
 import pandas as pd
 import json
 import os
+from datetime import datetime
+from dateutil import tz
 
 def parse_metrics(metrics):
     """
-    Parses the metrics of a reflection into a dictionary that can be turned into a DataFrame row.
+    Parse the metrics from a reflection instance into a dictionary.
 
     Args:
-        metrics (list): A list of dictionaries each representing a metric of a reflection.
+        metrics (list): A list of metrics in a reflection instance.
 
     Returns:
-        dict: A dictionary where the keys are the metric names and the values are the metric values.
+        dict: A dictionary with metric names as keys and metric values as values.
     """
     metric_dict = {}
 
@@ -38,22 +40,31 @@ def parse_metrics(metrics):
 
 def parse_reflection(reflection):
     """
-    Parses an individual reflection into a DataFrame.
+    Parses an individual reflection instance into a DataFrame, which is 
+    appended as a row to the output CSV file for the reflection type.
 
     Args:
         reflection (dict): A dictionary representing a reflection.
 
     Returns:
         str: The name of the reflection.
-        pd.DataFrame: A DataFrame where each row corresponds to a reflection instance and each column corresponds to a metric.
+        pd.DataFrame: A DataFrame where each row corresponds to a reflection 
+            instance and each column corresponds to a metric.
     """
     name = reflection['name']
-    date = reflection['date']
-    metrics = parse_metrics(reflection['metrics'])
-    metrics['Date'] = date
-    metrics['ID'] = reflection['id']
-    metrics['Notes'] = reflection.get('notes')
-    return name, pd.DataFrame([metrics])
+    timestamp = reflection['date']
+
+    # Convert the timestamp to datetime and adjust it to the local timezone
+    local_tz = tz.tzlocal()
+    date = datetime.fromtimestamp(timestamp).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")
+
+    reflection_row = parse_metrics(reflection['metrics'])
+    reflection_row['Timestamp'] = timestamp
+    reflection_row['Date'] = date
+    reflection_row['ID'] = reflection['id']
+    reflection_row['Notes'] = reflection.get('notes')
+
+    return name, pd.DataFrame([reflection_row])
 
 def parse_json(json_string):
     """
@@ -63,7 +74,9 @@ def parse_json(json_string):
         json_string (str): A JSON string.
 
     Returns:
-        dict: A map where the keys are the reflection names and the values are DataFrames.
+        dict: A map where the keys are the reflection names and the values are 
+            DataFrames with a row for each instance of the reflection in the
+            history JSON.
     """
     data = json.loads(json_string)
     reflections_map = {}
