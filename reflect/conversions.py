@@ -3,8 +3,9 @@ import json
 import os
 from datetime import datetime
 from dateutil import tz
+from typing import Dict, List, Optional, Tuple, Any
 
-def parse_metrics(metrics):
+def parse_metrics(metrics: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Parse the metrics from a reflection instance into a dictionary.
 
@@ -42,7 +43,7 @@ def parse_metrics(metrics):
 
     return metric_dict
 
-def parse_reflection(reflection):
+def parse_reflection(reflection: Dict) -> Tuple[str, pd.DataFrame]:
     """
     Parses an individual reflection instance into a DataFrame, which is 
     appended as a row to the output CSV file for the reflection type.
@@ -70,7 +71,7 @@ def parse_reflection(reflection):
 
     return name, pd.DataFrame([reflection_row])
 
-def parse_json(json_string):
+def parse_json(json_string: str) -> Dict[str, pd.DataFrame]:
     """
     Parses a JSON string into a map from reflection names to DataFrames.
 
@@ -92,14 +93,19 @@ def parse_json(json_string):
             reflections_map[name] = df
     return reflections_map
 
-def save_dataframes_to_csv(reflections_map, output_folder, filter_list=None):
+def save_dataframes_to_csv(reflections_map: Dict[str, pd.DataFrame], 
+                           output_folder: str, 
+                           filter_list: Optional[List[str]]=None) -> None:
     """
     Saves each DataFrame in the reflections_map to a CSV file.
 
     Args:
-        reflections_map (dict): A map where the keys are the reflection names and the values are DataFrames.
-        output_folder (str): The path to the folder where the CSV files will be saved.
-        filter_list (list, optional): A list of reflection names. Only the reflections with names in this list will be saved. Defaults to None.
+        reflections_map (dict): A map where the keys are the reflection names 
+            and the values are DataFrames.
+        output_folder (str): The path to the folder where the CSV files will be 
+            saved.
+        filter_list (list, optional): A list of reflection names. Only the 
+            reflections with names in this list will be saved. Defaults to None.
 
     Returns:
         None
