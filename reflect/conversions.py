@@ -57,7 +57,12 @@ def parse_reflection(reflection: Dict) -> Tuple[str, pd.DataFrame]:
             instance and each column corresponds to a metric.
     """
     name = reflection['name']
-    timestamp = reflection['date']
+    apple_timestamp = reflection['date']
+
+    # Convert the Apple timestamp to a Python timestamp
+    # 978307200 is the number of seconds between 1970-01-01T00:00:00Z and 
+    # 2001-01-01T00:00:00Z
+    timestamp = apple_timestamp + 978307200  
 
     # Convert the timestamp to datetime and adjust it to the local timezone
     local_tz = tz.tzlocal()
@@ -88,7 +93,7 @@ def parse_json(json_string: str) -> Dict[str, pd.DataFrame]:
     for reflection in data:
         name, df = parse_reflection(reflection)
         if name in reflections_map:
-            reflections_map[name] = pd.concat([reflections_map[name], df], ignore_index=True)
+            reflections_map[name] = pd.concat([df, reflections_map[name]], ignore_index=True)
         else:
             reflections_map[name] = df
     return reflections_map

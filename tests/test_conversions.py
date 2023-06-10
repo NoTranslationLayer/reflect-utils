@@ -87,7 +87,7 @@ class TestParsingFunctions(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 707233858.41729796
+                "date": 707233858.41729798
             },
             {
                 "id": "test_id_2",
@@ -101,7 +101,7 @@ class TestParsingFunctions(unittest.TestCase):
                             "string": {
                                 "_0": {
                                     "name": "string_metric_2",
-                                    "string": "test_string_2"
+                                    "string": "test_string_3"
                                 }
                             }
                         },
@@ -122,20 +122,20 @@ class TestParsingFunctions(unittest.TestCase):
                             "string": {
                                 "_0": {
                                     "name": "string_metric_2",
-                                    "string": "test_string_3"
+                                    "string": "test_string_2"
                                 }
                             }
                         },
                         "recorded": true
                     }
                 ],
-                "date": 707233860.41729798
+                "date": 707233860.41729796
             }
         ]
         """
-        timestamp_1 = 707233858.41729796
-        timestamp_2 = 707233859.41729797
-        timestamp_3 = 707233860.41729798
+        timestamp_1 = 707233858.41729798 + 978307200  
+        timestamp_2 = 707233859.41729797 + 978307200  
+        timestamp_3 = 707233860.41729796 + 978307200  
         local_tz = tz.tzlocal()
         self.expected_df_1 = pd.DataFrame({
             'string_metric': ['test_string'],
@@ -151,11 +151,11 @@ class TestParsingFunctions(unittest.TestCase):
 
         self.expected_df_2 = pd.DataFrame({
             'string_metric_2': ['test_string_2', 'test_string_3'],
-            'Timestamp': [timestamp_2, timestamp_3],
-            'Date': [datetime.fromtimestamp(timestamp_2).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S"),
-                     datetime.fromtimestamp(timestamp_3).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")],
-            'ID': ['test_id_2', 'test_id_3'],
-            'Notes': ['reflection_note_2', 'reflection_note_3']
+            'Timestamp': [timestamp_3, timestamp_2],
+            'Date': [datetime.fromtimestamp(timestamp_3).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S"),
+                     datetime.fromtimestamp(timestamp_2).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")],
+            'ID': ['test_id_3', 'test_id_2'],
+            'Notes': ['reflection_note_3', 'reflection_note_2']
         })
 
     def test_parse_json(self):
