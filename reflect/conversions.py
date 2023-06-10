@@ -18,6 +18,10 @@ def parse_metrics(metrics):
 
     for metric in metrics:
         metric_kind = list(metric['kind'].keys())[0]
+        # The "_0" string is an artifact of how Swift's JSONEncoder handles 
+        # encoding of enum cases with associated values. See Apple 
+        # documentation of JSONencoder in Swift:
+        # https://developer.apple.com/documentation/foundation/jsonencoder
         metric_info = metric['kind'][metric_kind]['_0']
 
         if 'recorded' not in metric or metric['recorded']:
