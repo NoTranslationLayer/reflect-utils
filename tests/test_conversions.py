@@ -1,6 +1,8 @@
 import unittest
 import os
 import pandas as pd
+from datetime import datetime
+from dateutil import tz
 from pandas.testing import assert_frame_equal
 
 from reflect import conversions as conv
@@ -11,8 +13,8 @@ class TestParsingFunctions(unittest.TestCase):
         [
             {
                 "id": "test_id",
-                "notes": "test_note",
-                "name": "test_name",
+                "notes": "reflection_note",
+                "name": "reflection_name_1",
                 "metrics": [
                     {
                         "group": "",
@@ -89,26 +91,29 @@ class TestParsingFunctions(unittest.TestCase):
             }
         ]
         """
+        timestamp = 707233858.41729796
+        local_tz = tz.tzlocal()
         self.expected_df = pd.DataFrame({
             'string_metric': ['test_string'],
             'choice_metric': ['choice1'],
             'bool_metric': [True],
             'unit_metric': [15],  # the unit ("min") is not currently considered in parsing, only the value
             'rating_metric': [5],
-            'date': [707233858.41729796],
-            'id': ['test_id'],
-            'notes': ['test_note']
+            'Timestamp': [timestamp],
+            'Date': datetime.fromtimestamp(timestamp).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S"),
+            'ID': ['test_id'],
+            'Notes': ['reflection_note']
         })
 
     def test_parse_json(self):
         reflections_map = conv.parse_json(self.json_string)
-        actual_df = reflections_map['test_name']
+        actual_df = reflections_map['reflection_name_1']
         assert_frame_equal(actual_df, self.expected_df)
 
     def test_save_dataframes_to_csv(self):
-        reflections_map = {'test_name': self.expected_df}
+        reflections_map = {'reflection_name_1': self.expected_df}
         conv.save_dataframes_to_csv(reflections_map, '.')
-        self.assertTrue(os.path.exists('test_name.csv'))
+        self.assertTrue(os.path.exists('reflection_name_1.csv'))
 
     def tearDown(self):
         if os.path.exists('test_name.csv'):
