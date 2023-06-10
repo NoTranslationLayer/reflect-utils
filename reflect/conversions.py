@@ -88,10 +88,11 @@ def parse_json(json_string: str) -> Dict[str, pd.DataFrame]:
     for reflection in data:
         name, df = parse_reflection(reflection)
         if name in reflections_map:
-            reflections_map[name] = pd.concat([reflections_map[name], df])
+            reflections_map[name] = pd.concat([reflections_map[name], df], ignore_index=True)
         else:
             reflections_map[name] = df
     return reflections_map
+
 
 def save_dataframes_to_csv(reflections_map: Dict[str, pd.DataFrame], 
                            output_folder: str, 
