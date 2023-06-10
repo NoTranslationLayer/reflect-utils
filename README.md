@@ -7,11 +7,17 @@ Utilities for processing and analysis of Reflect data
 pip install .
 ```
 
+For installing in editable mode, allowing to test changes without reinstalling the package:
+
+```python
+pip install -e .
+```
+
 ## JSON to CSV Converter
 
-This script parses a JSON file of reflections into separate CSV files.
+This script parses a JSON reflection history into separate CSV files.
 
-Each reflection in the JSON file will be parsed into a separate CSV file, with each reflection instance being a row and each metric being a column in the CSV file.
+Each reflection type in the JSON file will be parsed into a separate CSV file. This corresponds to a separate CSV file for each defined reflection template. Each reflection instance is a row and each metric in the reflection is a column in the resulting CSV file.
 
 ### Usage
 
