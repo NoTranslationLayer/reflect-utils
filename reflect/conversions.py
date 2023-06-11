@@ -37,6 +37,8 @@ def parse_metrics(metrics: List[Dict[str, Any]]) -> Dict[str, Any]:
                         metric_dict[metric_info['name']] = metric_info['value']
                     elif metric_kind == 'rating':
                         metric_dict[metric_info['name']] = metric_info['score']
+                    elif metric_kind == 'scalar':
+                        metric_dict[metric_info['name']] = metric_info['scalar']
             except KeyError:
                 # print(f"KeyError encountered with the following metric: {json.dumps(metric, indent=2)}")
                 metric_dict[metric_info['name']] = None

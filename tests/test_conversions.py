@@ -106,6 +106,19 @@ class TestParsingFunctions(unittest.TestCase):
                             }
                         },
                         "recorded": true
+                    },
+                    {
+                        "group": "",
+                        "id": "metric_id_7",
+                        "kind": {
+                            "scalar": {
+                                "_0": {
+                                    "name": "scalar_metric",
+                                    "scalar": 0
+                                }
+                            }
+                        },
+                        "recorded": true
                     }
                 ],
                 "date": 707233859.41729797
@@ -117,12 +130,25 @@ class TestParsingFunctions(unittest.TestCase):
                 "metrics": [
                     {
                         "group": "",
-                        "id": "metric_id_7",
+                        "id": "metric_id_8",
                         "kind": {
                             "string": {
                                 "_0": {
                                     "name": "string_metric_2",
                                     "string": "test_string_2"
+                                }
+                            }
+                        },
+                        "recorded": true
+                    },
+                    {
+                        "group": "",
+                        "id": "metric_id_9",
+                        "kind": {
+                            "scalar": {
+                                "_0": {
+                                    "name": "scalar_metric",
+                                    "scalar": 2
                                 }
                             }
                         },
@@ -151,6 +177,7 @@ class TestParsingFunctions(unittest.TestCase):
 
         self.expected_df_2 = pd.DataFrame({
             'string_metric_2': ['test_string_2', 'test_string_3'],
+            'scalar_metric': [2, 0],
             'Timestamp': [timestamp_3, timestamp_2],
             'Date': [datetime.fromtimestamp(timestamp_3).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S"),
                      datetime.fromtimestamp(timestamp_2).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")],
