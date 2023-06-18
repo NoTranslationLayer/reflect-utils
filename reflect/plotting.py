@@ -80,10 +80,7 @@ def plot(
     plt.tight_layout()
     plt.show()
 
-import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+
 
 def filtered_correlation_plot(df: pd.DataFrame) -> None:
     """
