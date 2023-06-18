@@ -7,6 +7,7 @@ from typing import Optional
 
 def plot(
     df: pd.DataFrame,
+    title: str = "",
     frequency: Optional[str] = None,
     sampling_method: str = 'mean',
     max_metrics_per_subplot: Optional[int] = None
@@ -16,6 +17,7 @@ def plot(
 
     Args:
         df: Input DataFrame.
+        title: Optional title for the plot (default: "")
         frequency: Frequency string for resampling (e.g., 'hourly', 'daily', 
             'weekly'). Defaults to None.
         sampling_method: Resampling method ('mean', 'min', 'max'). Defaults to 
@@ -77,17 +79,22 @@ def plot(
 #         ax.minorticks_on()
         ax.grid(which='minor', linestyle=':', linewidth='0.5', color='black')
     
+    # Set the title if provided
+    if title:
+        plt.suptitle(title)
+
     plt.tight_layout()
     plt.show()
 
 
 
-def filtered_correlation_plot(df: pd.DataFrame) -> None:
+def filtered_correlation_plot(df: pd.DataFrame, title: str = "") -> pd.DataFrame:
     """
     This function plots the filtered correlation matrix of a dataframe.
 
     Args:
         df: A pandas DataFrame object
+        title: Optional title for the plot (default: "")
 
     The function computes the correlation matrix of the input DataFrame,
     sets diagonal values to NaN (correlations of variables with themselves),
@@ -140,6 +147,9 @@ def filtered_correlation_plot(df: pd.DataFrame) -> None:
     plt.xticks(rotation=90)
     plt.yticks(rotation=0)
 
+    # Set the title if provided
+    if title:
+        plt.suptitle(title)
+
     plt.tight_layout()
     plt.show()
-
