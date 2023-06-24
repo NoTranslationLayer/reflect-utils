@@ -19,7 +19,10 @@ def plot(
         df: Input DataFrame.
         title: Optional title for the plot (default: "")
         frequency: Frequency string for resampling (e.g., 'hourly', 'daily', 
-            'weekly'). Defaults to None.
+            'weekly', 'biweekly'). Also supports custom pandas offset aliases 
+            of the format 3D for 3 days, 2M for 2 months. See documentation 
+            here: https://pandas.pydata.org/pandas-docs/version/0.22/timeseries.html#offset-aliases 
+            Defaults to None.
         sampling_method: Resampling method ('mean', 'min', 'max'). Defaults to 
             'mean'.
         max_metrics_per_subplot: Maximum number of metrics per subplot. 
@@ -40,8 +43,11 @@ def plot(
     
     # Resample the data if frequency is not None
     if frequency is not None:
-        # Convert frequency string to pandas offset alias
-        resample_frequency = freq_dict[frequency]
+        # Convert frequency string to pandas offset alias.
+        # Use the original string if it's not found in freq_dict
+        # which allows custom frequencies, e.g. 3D for 3 days, 3W for 3 weeks, 
+        # etc.
+        resample_frequency = freq_dict.get(frequency, frequency)
         
         # Resample the data
         if sampling_method == 'mean':
