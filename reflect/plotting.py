@@ -19,7 +19,10 @@ def plot(
         df: Input DataFrame.
         title: Optional title for the plot (default: "")
         frequency: Frequency string for resampling (e.g., 'hourly', 'daily', 
-            'weekly'). Defaults to None.
+            'weekly', 'biweekly'). Also supports custom pandas offset aliases 
+            of the format 3D for 3 days, 2M for 2 months. See documentation 
+            here: https://pandas.pydata.org/pandas-docs/version/0.22/timeseries.html#offset-aliases 
+            Defaults to None.
         sampling_method: Resampling method ('mean', 'min', 'max'). Defaults to 
             'mean'.
         max_metrics_per_subplot: Maximum number of metrics per subplot. 
@@ -40,8 +43,11 @@ def plot(
     
     # Resample the data if frequency is not None
     if frequency is not None:
-        # Convert frequency string to pandas offset alias
-        resample_frequency = freq_dict[frequency]
+        # Convert frequency string to pandas offset alias.
+        # Use the original string if it's not found in freq_dict
+        # which allows custom frequencies, e.g. 3D for 3 days, 3W for 3 weeks, 
+        # etc.
+        resample_frequency = freq_dict.get(frequency, frequency)
         
         # Resample the data
         if sampling_method == 'mean':
@@ -76,7 +82,6 @@ def plot(
         end = min((i + 1) * max_metrics_per_subplot, num_metrics)
         df.iloc[:, start:end].plot(ax=ax, style='x-', grid=True, markersize=10)
         ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
-#         ax.minorticks_on()
         ax.grid(which='minor', linestyle=':', linewidth='0.5', color='black')
     
     # Set the title if provided
@@ -131,14 +136,15 @@ def filtered_correlation_plot(df: pd.DataFrame, title: str = "") -> pd.DataFrame
     for i in range(corr_filtered.shape[0]):
         for j in range(corr_filtered.shape[1]):
             value = corr_filtered.iloc[i, j]
+            sign = np.sign(value)
             if abs(value) < 0.1:
                 corr_filtered.iloc[i, j] = 0
             elif abs(value) < 0.3:
-                corr_filtered.iloc[i, j] = np.sign(value) * 0.2
+                corr_filtered.iloc[i, j] = sign * 0.2
             elif abs(value) < 0.5:
-                corr_filtered.iloc[i, j] = np.sign(value) * 0.4
+                corr_filtered.iloc[i, j] = sign * 0.4
             else:
-                corr_filtered.iloc[i, j] = np.sign(value) * 0.8
+                corr_filtered.iloc[i, j] = sign * 0.8
 
     # Create the second subplot
     plt.subplot(1, 2, 2)
