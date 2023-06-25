@@ -22,7 +22,7 @@ def find_outliers(
         calculations. This is the number of observations used for calculating 
         the mean and standard deviation.
     z_threshold : float, optional
-        The Z-Score threshold for identifying outliers. Default is 3.0.
+        The Z-Score threshold for identifying outliers. Default is 2.0.
     min_periods : int, optional
         Minimum number of observations in window required to have a value. 
         Default is 1.
