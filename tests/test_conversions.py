@@ -45,8 +45,182 @@ class TestParsingMetricValue(unittest.TestCase):
             conv.parse_metric_value(self.metric_no_kind)
 
     def test_parse_metric_not_recorded(self):
-        result = conv.parse_metric_value(self.metric_not_recorded)
-        self.assertEqual(result, None)
+        name, kind, value = conv.parse_metric_value(self.metric_not_recorded)
+        self.assertEqual(name, "No Gi")
+        self.assertEqual(kind, "bool")
+        self.assertEqual(value, None)
+
+
+class TestParsingOptions(unittest.TestCase):
+    def setUp(self):
+        """
+        Create a test JSON which has three reflection instances: (not reverse chronological order in JSON)
+        - one with metric "Perplexed"
+        - new metric "Elated" is added, "Perplexed" is present but not recorded
+        - "Perplexed" is removed, only "Elated" remains
+        """
+        self.json_string = """
+        [
+            {
+                "id": "test_id_3",
+                "notes": "",
+                "name": "Mood",
+                "metrics": [
+                    {
+                        "group": "",
+                        "id": "metric_id_4",
+                        "kind": {
+                            "rating": {
+                                "_0": {
+                                    "name": "Elated",
+                                    "score": 4
+                                }
+                            }
+                        },
+                        "recorded": true
+                    }
+                ],
+                "date": 707233858.41729798
+
+            },
+            {
+                "id": "test_id_2",
+                "notes": "",
+                "name": "Mood",
+                "metrics": [
+                    {
+                        "group": "",
+                        "id": "metric_id_3",
+                        "kind": {
+                            "rating": {
+                                "_0": {
+                                    "name": "Perplexed"
+                                }
+                            }
+                        },
+                        "recorded": false
+                    },
+                    {
+                        "group": "",
+                        "id": "metric_id_2",
+                        "kind": {
+                            "rating": {
+                                "_0": {
+                                    "name": "Elated",
+                                    "score": 4
+                                }
+                            }
+                        },
+                        "recorded": true
+                    }
+                ],
+                "date": 707233859.41729797
+            },
+            {
+                "id": "test_id_1",
+                "notes": "",
+                "name": "Mood",
+                "metrics": [
+                    {
+                        "group": "",
+                        "id": "metric_id_1",
+                        "kind": {
+                            "rating": {
+                                "_0": {
+                                    "name": "Perplexed",
+                                    "score": 3
+                                }
+                            }
+                        },
+                        "recorded": true
+                    }
+                ],
+                "date": 707233860.41729796
+            }
+        ]
+        """
+        timestamp_1 = 707233858.41729798 + 978307200
+        timestamp_2 = 707233859.41729797 + 978307200
+        timestamp_3 = 707233860.41729796 + 978307200
+        local_tz = tz.tzlocal()
+        self.default_parsing_options = conv.ParsingOptions()
+        self.expected_df_default = pd.DataFrame(
+            {
+                "Perplexed": [None, 0, 3],
+                "Elated": [4, 4, None],
+                "Timestamp": [timestamp_3, timestamp_2, timestamp_1],
+                "Date": [
+                    datetime.fromtimestamp(timestamp_3)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S"),
+                    datetime.fromtimestamp(timestamp_2)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S"),
+                    datetime.fromtimestamp(timestamp_1)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S"),
+                ],
+                "ID": ["test_id_3", "test_id_2", "test_id_1"],
+                "Notes": ["", "", ""],
+            }
+        ).convert_dtypes()
+        self.expected_df_default = self.expected_df_default.sort_values(
+            by="Timestamp", ascending=True
+        )
+
+        self.custom_parsing_options = conv.ParsingOptions()
+        # define some custom parsing options
+        self.custom_parsing_options.defaults["rating"] = 42
+        self.custom_parsing_options.pre_metric_defaults["rating"] = 0
+        self.custom_parsing_options.post_metric_defaults["rating"] = 1
+        self.expected_df_custom = pd.DataFrame(
+            {
+                "Perplexed": [1, 42, 3],
+                "Elated": [4, 4, 0],
+                "Timestamp": [timestamp_3, timestamp_2, timestamp_1],
+                "Date": [
+                    datetime.fromtimestamp(timestamp_3)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S"),
+                    datetime.fromtimestamp(timestamp_2)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S"),
+                    datetime.fromtimestamp(timestamp_1)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S"),
+                ],
+                "ID": ["test_id_3", "test_id_2", "test_id_1"],
+                "Notes": ["", "", ""],
+            }
+        ).convert_dtypes()
+        self.expected_df_custom = self.expected_df_custom.sort_values(
+            by="Timestamp", ascending=True
+        )
+
+    def test_parse_json_parsing_options(self):
+        """Compare default and custom parsing options output."""
+        reflections_map_default = conv.parse_json(
+            self.json_string, self.default_parsing_options
+        )
+        reflections_map_custom = conv.parse_json(
+            self.json_string, self.custom_parsing_options
+        )
+
+        actual_df_default = reflections_map_default["Mood"].convert_dtypes()
+        actual_df_custom = reflections_map_custom["Mood"].convert_dtypes()
+        print("default parsing options:")
+        print(f"expected:\n{self.expected_df_default}")
+        print(f"actual:\n{actual_df_default}")
+
+        pd.testing.assert_frame_equal(
+            actual_df_default, self.expected_df_default
+        )
+        print("custom parsing options:")
+        print(f"expected:\n{self.expected_df_custom}")
+        print(f"actual:\n{actual_df_custom}")
+        pd.testing.assert_frame_equal(
+            actual_df_custom, self.expected_df_custom
+        )
 
 
 class TestJsonToCsvParsing(unittest.TestCase):
@@ -224,6 +398,9 @@ class TestJsonToCsvParsing(unittest.TestCase):
                 "Notes": ["reflection_note_1"],
             }
         )
+        self.expected_df_1 = self.expected_df_1.sort_values(
+            by="Timestamp", ascending=True
+        )
 
         self.expected_df_2 = pd.DataFrame(
             {
@@ -242,6 +419,10 @@ class TestJsonToCsvParsing(unittest.TestCase):
                 "Notes": ["reflection_note_3", "reflection_note_2"],
             }
         )
+        self.expected_df_2 = self.expected_df_2.sort_values(
+            by="Timestamp", ascending=True
+        )
+
         self.parsing_options = conv.ParsingOptions()
 
     def test_parse_json(self):

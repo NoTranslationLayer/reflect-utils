@@ -107,25 +107,28 @@ def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
     metric_content = metric["kind"][metric_kind].get("_0")
 
     if metric_content is not None:
-        try:
-            metric_name = metric_content["name"]
-            if metric_kind == "string":
-                value = metric_content["string"]
-            elif metric_kind == "choice":
-                value = metric_content["choice"]
-            elif metric_kind == "bool":
-                value = metric_content["bool"]
-            elif metric_kind == "unit":
-                value = metric_content["value"]
-            elif metric_kind == "rating":
-                value = metric_content["score"]
-            elif metric_kind == "scalar":
-                value = metric_content["scalar"]
-        except KeyError:
-            return None
-    if "recorded" in metric and not metric["recorded"]:
-        return None
-    return metric_name, metric_kind, value
+
+        metric_name = metric_content.get("name")
+        if metric_name is not None:
+            try:
+                if metric_kind == "string":
+                    value = metric_content["string"]
+                elif metric_kind == "choice":
+                    value = metric_content["choice"]
+                elif metric_kind == "bool":
+                    value = metric_content["bool"]
+                elif metric_kind == "unit":
+                    value = metric_content["value"]
+                elif metric_kind == "rating":
+                    value = metric_content["score"]
+                elif metric_kind == "scalar":
+                    value = metric_content["scalar"]
+            except KeyError:
+                value = None
+            if "recorded" in metric and not metric["recorded"]:
+                value = None
+            return metric_name, metric_kind, value
+    return None
 
 
 def parse_metrics(
@@ -147,20 +150,21 @@ def parse_metrics(
     """
     metric_dict = {}
 
-    for metric in metrics:
+    for metric in metrics[::-1]:
         result = parse_metric_value(metric)
 
         if result is not None:
             metric_name, metric_kind, metric_val = result
-            metric_dict[metric_name] = metric_val
-        elif metric_name in existing_columns:
-            metric_dict[metric_name] = parsing_options.get_post_metric_default(
-                metric_kind
-            )
-        else:
-            metric_dict[metric_name] = parsing_options.get_default_value(
-                metric_kind
-            )
+            if metric_val is not None:
+                metric_dict[metric_name] = metric_val
+            elif metric_name in existing_columns:
+                metric_dict[metric_name] = parsing_options.get_post_metric_default(
+                    metric_kind
+                )
+            else:
+                metric_dict[metric_name] = parsing_options.get_default_value(
+                    metric_kind
+                )
 
     for column in existing_columns:
         if column not in metric_dict:
@@ -169,6 +173,7 @@ def parse_metrics(
             )
 
     return metric_dict
+
 
 
 def parse_reflection(
