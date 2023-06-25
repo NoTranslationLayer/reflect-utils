@@ -3,10 +3,10 @@ import numpy as np
 from typing import Optional
 
 
-def outlier_identification(
+def find_outliers(
     df: pd.DataFrame,
     time_window: str,
-    z_threshold: float = 3.0,
+    z_threshold: float = 2.0,
     min_periods: Optional[int] = 1,
     center: bool = False,
 ) -> pd.DataFrame:
@@ -37,8 +37,8 @@ def outlier_identification(
     Returns
     -------
     pd.DataFrame
-        A copy of the input DataFrame, but with non-outlier numerical values replaced with NaN,
-        and columns without outliers removed.
+        A copy of the input DataFrame, but with non-outlier numerical values 
+        replaced with NaN, and columns without outliers removed.
     """
 
     df_outliers = df.copy()
