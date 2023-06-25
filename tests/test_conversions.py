@@ -8,55 +8,36 @@ from pandas.testing import assert_frame_equal
 from reflect import conversions as conv
 
 
-
-
 class TestParsingMetricValue(unittest.TestCase):
     """
-    Tests the `parse_metric_value` function's ability to correctly extract the 
-    metric name, kind, and value from the provided metric dictionary. It also 
-    tests the function's behavior when the metric "kind" is missing or when the 
+    Tests the `parse_metric_value` function's ability to correctly extract the
+    metric name, kind, and value from the provided metric dictionary. It also
+    tests the function's behavior when the metric "kind" is missing or when the
     metric is present but is not recorded.
     """
 
     def setUp(self):
         self.metric_data = {
-            "kind": {
-                "bool": {
-                    "_0": {
-                        "name": "No Gi",
-                        "bool": False
-                    }
-                }
-            },
-            "id": "994FAC7F-FA9D-4B5E-9896-F72165F72A6C",
-            "group": "Info"
-        }
-        self.metric_no_kind = {
-            "_0": {
-                "name": "No Gi",
-                "bool": False
-            },
-            "id": "994FAC7F-FA9D-4B5E-9896-F72165F72A6C",
-            "group": "Info"
-        }
-        self.metric_not_recorded = {
-            "kind": {
-                "bool": {
-                    "_0": {
-                        "name": "No Gi",
-                        "bool": False
-                    }
-                }
-            },
+            "kind": {"bool": {"_0": {"name": "No Gi", "bool": False}}},
             "id": "994FAC7F-FA9D-4B5E-9896-F72165F72A6C",
             "group": "Info",
-            "recorded": False
+        }
+        self.metric_no_kind = {
+            "_0": {"name": "No Gi", "bool": False},
+            "id": "994FAC7F-FA9D-4B5E-9896-F72165F72A6C",
+            "group": "Info",
+        }
+        self.metric_not_recorded = {
+            "kind": {"bool": {"_0": {"name": "No Gi", "bool": False}}},
+            "id": "994FAC7F-FA9D-4B5E-9896-F72165F72A6C",
+            "group": "Info",
+            "recorded": False,
         }
 
     def test_parse_metric_value(self):
         name, kind, value = conv.parse_metric_value(self.metric_data)
-        self.assertEqual(name, 'No Gi')
-        self.assertEqual(kind, 'bool')
+        self.assertEqual(name, "No Gi")
+        self.assertEqual(kind, "bool")
         self.assertEqual(value, False)
 
     def test_parse_metric_no_kind(self):
