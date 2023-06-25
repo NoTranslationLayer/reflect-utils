@@ -28,22 +28,22 @@ class ParsingOptions:
             "choice": None,
             "bool": False,
             "unit": 0,
-            "rating": None,
-            "scalar": None,
+            "rating": 0,
+            "scalar": 0,
         }
         self.pre_metric_defaults = {
-            "string": "",
+            "string": None,
             "choice": None,
-            "bool": False,
-            "unit": 0,
+            "bool": None,
+            "unit": None,
             "rating": None,
             "scalar": None,
         }
         self.post_metric_defaults = {
-            "string": "",
+            "string": None,
             "choice": None,
-            "bool": False,
-            "unit": 0,
+            "bool": None,
+            "unit": None,
             "rating": None,
             "scalar": None,
         }
