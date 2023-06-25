@@ -201,6 +201,69 @@ class TestParsingFunctions(unittest.TestCase):
         self.assertTrue(os.path.exists('reflection_name_1.csv'))
         self.assertTrue(os.path.exists('reflection_name_2.csv'))
 
+    def test_parse_metrics_with_default_value(self):
+        metrics = [
+            {
+                "kind": {
+                    "rating": {
+                        "_0": {
+                            "name": "Rating 1",
+                            "score": 5
+                        }
+                    }
+                },
+                "id": "1",
+                "recorded": True
+            },
+            {
+                "kind": {
+                    "rating": {
+                        "_0": {
+                            "name": "Rating 2",
+                            "score": 4
+                        }
+                    }
+                },
+                "id": "2",
+                "recorded": False
+            },
+            {
+                "kind": {
+                    "rating": {
+                        "_0": {
+                            "name": "Rating 3",
+                            "score": 3
+                        }
+                    }
+                },
+                "id": "3"
+            },
+            {
+                "kind": {
+                    "rating": {
+                        "_0": {
+                            "name": "Rating 4"
+                        }
+                    }
+                },
+                "id": "4"
+            }
+        ]
+
+        # Define the expected result with a default value of None
+        expected_result = {
+            "Rating 1": 5,
+            "Rating 2": None,
+            "Rating 3": None,
+            "Rating 4": None
+        }
+
+        # Parse the metrics with a default value of None
+        result = conv.parse_metrics(metrics, default_value=None)
+
+        # Verify that the parsed metrics match the expected result
+        self.assertEqual(result, expected_result)
+
     def tearDown(self):
         if os.path.exists('reflection_name_1.csv'):
             os.remove('reflection_name_1.csv')

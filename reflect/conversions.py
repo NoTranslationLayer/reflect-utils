@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple, Any
 
 
 def parse_metrics(
-    metrics: List[Dict[str, Any]], default_value=None
+    metrics: List[Dict[str, Any]], default_value: Any = None
 ) -> Dict[str, Any]:
     """
     Parse the metrics from a reflection instance into a dictionary.
@@ -28,24 +28,26 @@ def parse_metrics(
         # encoding of enum cases with associated values. See Apple
         # documentation of JSONencoder in Swift:
         # https://developer.apple.com/documentation/foundation/jsonencoder
-        metric_info = metric["kind"][metric_kind]["_0"]
+        metric_val = metric["kind"][metric_kind].get("_0")
 
-        if "recorded" not in metric or metric["recorded"]:
+        if metric_val is not None:
             try:
                 if metric_kind == "string":
-                    metric_dict[metric_info["name"]] = metric_info["string"]
+                    metric_dict[metric_val["name"]] = metric_val["string"]
                 elif metric_kind == "choice":
-                    metric_dict[metric_info["name"]] = metric_info["choice"]
+                    metric_dict[metric_val["name"]] = metric_val["choice"]
                 elif metric_kind == "bool":
-                    metric_dict[metric_info["name"]] = metric_info["bool"]
+                    metric_dict[metric_val["name"]] = metric_val["bool"]
                 elif metric_kind == "unit":
-                    metric_dict[metric_info["name"]] = metric_info["value"]
+                    metric_dict[metric_val["name"]] = metric_val["value"]
                 elif metric_kind == "rating":
-                    metric_dict[metric_info["name"]] = metric_info["score"]
+                    metric_dict[metric_val["name"]] = metric_val["score"]
                 elif metric_kind == "scalar":
-                    metric_dict[metric_info["name"]] = metric_info["scalar"]
+                    metric_dict[metric_val["name"]] = metric_val["scalar"]
             except KeyError:
-                metric_dict[metric_info["name"]] = default_value
+                metric_dict[metric_val["name"]] = default_value
+        elif "recorded" in metric and not metric["recorded"]:
+            metric_dict[metric_val["name"]] = default_value
 
     return metric_dict
 
