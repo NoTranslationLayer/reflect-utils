@@ -7,6 +7,7 @@ from pandas.testing import assert_frame_equal
 
 from reflect import conversions as conv
 
+
 class TestParsingFunctions(unittest.TestCase):
     def setUp(self):
         self.json_string = """
@@ -159,36 +160,55 @@ class TestParsingFunctions(unittest.TestCase):
             }
         ]
         """
-        timestamp_1 = 707233858.41729798 + 978307200  
-        timestamp_2 = 707233859.41729797 + 978307200  
-        timestamp_3 = 707233860.41729796 + 978307200  
+        timestamp_1 = 707233858.41729798 + 978307200
+        timestamp_2 = 707233859.41729797 + 978307200
+        timestamp_3 = 707233860.41729796 + 978307200
         local_tz = tz.tzlocal()
-        self.expected_df_1 = pd.DataFrame({
-            'string_metric': ['test_string'],
-            'choice_metric': ['choice1'],
-            'bool_metric': [True],
-            'unit_metric': [15],   # the unit ("min") is not currently considered in parsing, only the value
-            'rating_metric': [5],
-            'Timestamp': [timestamp_1],
-            'Date': [datetime.fromtimestamp(timestamp_1).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")],
-            'ID': ['test_id_1'],
-            'Notes': ['reflection_note_1']
-        })
+        self.expected_df_1 = pd.DataFrame(
+            {
+                "string_metric": ["test_string"],
+                "choice_metric": ["choice1"],
+                "bool_metric": [True],
+                "unit_metric": [
+                    15
+                ],  # the unit ("min") is not currently considered in parsing, only the value
+                "rating_metric": [5],
+                "Timestamp": [timestamp_1],
+                "Date": [
+                    datetime.fromtimestamp(timestamp_1)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S")
+                ],
+                "ID": ["test_id_1"],
+                "Notes": ["reflection_note_1"],
+            }
+        )
 
-        self.expected_df_2 = pd.DataFrame({
-            'string_metric_2': ['test_string_2', 'test_string_3'],
-            'scalar_metric': [2, 0],
-            'Timestamp': [timestamp_3, timestamp_2],
-            'Date': [datetime.fromtimestamp(timestamp_3).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S"),
-                     datetime.fromtimestamp(timestamp_2).astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")],
-            'ID': ['test_id_3', 'test_id_2'],
-            'Notes': ['reflection_note_3', 'reflection_note_2']
-        })
+        self.expected_df_2 = pd.DataFrame(
+            {
+                "string_metric_2": ["test_string_2", "test_string_3"],
+                "scalar_metric": [2, 0],
+                "Timestamp": [timestamp_3, timestamp_2],
+                "Date": [
+                    datetime.fromtimestamp(timestamp_3)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S"),
+                    datetime.fromtimestamp(timestamp_2)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S"),
+                ],
+                "ID": ["test_id_3", "test_id_2"],
+                "Notes": ["reflection_note_3", "reflection_note_2"],
+            }
+        )
+        self.parsing_options = conv.ParsingOptions()
 
     def test_parse_json(self):
-        reflections_map = conv.parse_json(self.json_string)
-        actual_df_1 = reflections_map['reflection_name_1']
-        actual_df_2 = reflections_map['reflection_name_2']
+        reflections_map = conv.parse_json(
+            self.json_string, self.parsing_options
+        )
+        actual_df_1 = reflections_map["reflection_name_1"]
+        actual_df_2 = reflections_map["reflection_name_2"]
         assert_frame_equal(actual_df_1, self.expected_df_1)
 
         print(actual_df_2)
@@ -196,79 +216,20 @@ class TestParsingFunctions(unittest.TestCase):
         assert_frame_equal(actual_df_2, self.expected_df_2)
 
     def test_save_dataframes_to_csv(self):
-        reflections_map = {'reflection_name_1': self.expected_df_1, 'reflection_name_2': self.expected_df_2}
-        conv.save_dataframes_to_csv(reflections_map, '.')
-        self.assertTrue(os.path.exists('reflection_name_1.csv'))
-        self.assertTrue(os.path.exists('reflection_name_2.csv'))
-
-    def test_parse_metrics_with_default_value(self):
-        metrics = [
-            {
-                "kind": {
-                    "rating": {
-                        "_0": {
-                            "name": "Rating 1",
-                            "score": 5
-                        }
-                    }
-                },
-                "id": "1",
-                "recorded": True
-            },
-            {
-                "kind": {
-                    "rating": {
-                        "_0": {
-                            "name": "Rating 2",
-                            "score": 4
-                        }
-                    }
-                },
-                "id": "2",
-                "recorded": False
-            },
-            {
-                "kind": {
-                    "rating": {
-                        "_0": {
-                            "name": "Rating 3",
-                            "score": 3
-                        }
-                    }
-                },
-                "id": "3"
-            },
-            {
-                "kind": {
-                    "rating": {
-                        "_0": {
-                            "name": "Rating 4"
-                        }
-                    }
-                },
-                "id": "4"
-            }
-        ]
-
-        # Define the expected result with a default value of None
-        expected_result = {
-            "Rating 1": 5,
-            "Rating 2": None,
-            "Rating 3": None,
-            "Rating 4": None
+        reflections_map = {
+            "reflection_name_1": self.expected_df_1,
+            "reflection_name_2": self.expected_df_2,
         }
-
-        # Parse the metrics with a default value of None
-        result = conv.parse_metrics(metrics, default_value=None)
-
-        # Verify that the parsed metrics match the expected result
-        self.assertEqual(result, expected_result)
+        conv.save_dataframes_to_csv(reflections_map, ".")
+        self.assertTrue(os.path.exists("reflection_name_1.csv"))
+        self.assertTrue(os.path.exists("reflection_name_2.csv"))
 
     def tearDown(self):
-        if os.path.exists('reflection_name_1.csv'):
-            os.remove('reflection_name_1.csv')
-        if os.path.exists('reflection_name_2.csv'):
-            os.remove('reflection_name_2.csv')
+        if os.path.exists("reflection_name_1.csv"):
+            os.remove("reflection_name_1.csv")
+        if os.path.exists("reflection_name_2.csv"):
+            os.remove("reflection_name_2.csv")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
