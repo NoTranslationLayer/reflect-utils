@@ -6,6 +6,7 @@ from dateutil import tz
 from pandas.testing import assert_frame_equal
 
 from reflect import conversions as conv
+from reflect import utils as util
 
 
 class TestParsingMetricValue(unittest.TestCase):
