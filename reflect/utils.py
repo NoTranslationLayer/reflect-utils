@@ -3,21 +3,6 @@ import numpy as np
 from typing import Optional
 
 
-def dataframes_equal(df1: pd.DataFrame, df2: pd.DataFrame) -> bool:
-    """
-    Compare two pandas DataFrame for equality without considering column order.
-
-    Args:
-        df1: The first pandas DataFrame.
-        df2: The second pandas DataFrame.
-
-    Returns:
-        True if the two DataFrame objects have the same shape and elements,
-        False otherwise.
-    """
-    return df1.sort_index(axis=1).equals(df2.sort_index(axis=1))
-
-
 def find_outliers(
     df: pd.DataFrame,
     time_window: str,

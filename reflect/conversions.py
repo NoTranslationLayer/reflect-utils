@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import json
 import os
 import yaml
@@ -35,17 +36,17 @@ class ParsingOptions:
             "string": None,
             "choice": None,
             "bool": None,
-            "unit": None,
-            "rating": None,
-            "scalar": None,
+            "unit": np.nan,
+            "rating": np.nan,
+            "scalar": np.nan,
         }
         self.post_metric_defaults = {
             "string": None,
             "choice": None,
             "bool": None,
-            "unit": None,
-            "rating": None,
-            "scalar": None,
+            "unit": np.nan,
+            "rating": np.nan,
+            "scalar": np.nan,
         }
 
     def load_from_yaml(self, yaml_file: str):
@@ -107,7 +108,6 @@ def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
     metric_content = metric["kind"][metric_kind].get("_0")
 
     if metric_content is not None:
-
         metric_name = metric_content.get("name")
         if metric_name is not None:
             try:
@@ -127,6 +127,7 @@ def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
                 value = None
             if "recorded" in metric and not metric["recorded"]:
                 value = None
+                print(metric_name, metric_kind, value)
             return metric_name, metric_kind, value
     return None
 
@@ -150,17 +151,13 @@ def parse_metrics(
     """
     metric_dict = {}
 
-    for metric in metrics[::-1]:
+    for metric in metrics:
         result = parse_metric_value(metric)
 
         if result is not None:
             metric_name, metric_kind, metric_val = result
             if metric_val is not None:
                 metric_dict[metric_name] = metric_val
-            elif metric_name in existing_columns:
-                metric_dict[metric_name] = parsing_options.get_post_metric_default(
-                    metric_kind
-                )
             else:
                 metric_dict[metric_name] = parsing_options.get_default_value(
                     metric_kind
@@ -173,7 +170,6 @@ def parse_metrics(
             )
 
     return metric_dict
-
 
 
 def parse_reflection(
@@ -224,6 +220,7 @@ def parse_reflection(
     reflection_row["Notes"] = reflection.get("notes")
 
     # Use post_metric_default for any columns in existing_df not present in this reflection instance
+    # TODO(@syler): fix lookup by type, not column name
     if existing_df is not None:
         for column in existing_df.columns:
             if column not in reflection_row:
@@ -250,6 +247,10 @@ def parse_json(
             history JSON.
     """
     data = json.loads(json_string)
+
+    # Sort the list of dictionaries by "date" in ascending order
+    data = sorted(data, key=lambda x: x['date'])
+
     reflections_map = {}
     for reflection in data:
         existing_df = reflections_map.get(reflection["name"])
@@ -260,6 +261,7 @@ def parse_json(
             )
         else:
             reflections_map[name] = df
+
     return reflections_map
 
 

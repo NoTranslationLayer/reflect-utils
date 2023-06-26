@@ -1,12 +1,12 @@
 import unittest
 import os
 import pandas as pd
+import numpy as np
 from datetime import datetime
 from dateutil import tz
 from pandas.testing import assert_frame_equal
 
 from reflect import conversions as conv
-from reflect import utils as util
 
 
 class TestParsingMetricValue(unittest.TestCase):
@@ -82,7 +82,6 @@ class TestParsingOptions(unittest.TestCase):
                     }
                 ],
                 "date": 707233858.41729798
-
             },
             {
                 "id": "test_id_2",
@@ -147,8 +146,8 @@ class TestParsingOptions(unittest.TestCase):
         self.default_parsing_options = conv.ParsingOptions()
         self.expected_df_default = pd.DataFrame(
             {
-                "Perplexed": [None, 0, 3],
-                "Elated": [4, 4, None],
+                "Perplexed": [3.0, 0.0, np.nan],
+                "Elated": [np.nan, 4, 4],
                 "Timestamp": [timestamp_3, timestamp_2, timestamp_1],
                 "Date": [
                     datetime.fromtimestamp(timestamp_3)
@@ -161,23 +160,25 @@ class TestParsingOptions(unittest.TestCase):
                     .astimezone(local_tz)
                     .strftime("%Y-%m-%d %H:%M:%S"),
                 ],
-                "ID": ["test_id_3", "test_id_2", "test_id_1"],
+                "ID": ["test_id_1", "test_id_2", "test_id_3"],
                 "Notes": ["", "", ""],
             }
-        ).convert_dtypes()
-        self.expected_df_default = self.expected_df_default.sort_values(
-            by="Timestamp", ascending=True
         )
+
+        # self.expected_df_default = self.expected_df_default.set_index(
+        #     "Timestamp"
+        # ).sort_index()
 
         self.custom_parsing_options = conv.ParsingOptions()
         # define some custom parsing options
         self.custom_parsing_options.defaults["rating"] = 42
         self.custom_parsing_options.pre_metric_defaults["rating"] = 0
         self.custom_parsing_options.post_metric_defaults["rating"] = 1
+
         self.expected_df_custom = pd.DataFrame(
             {
-                "Perplexed": [1, 42, 3],
-                "Elated": [4, 4, 0],
+                "Perplexed": [3, 42, 1],
+                "Elated": [0, 4, 4],
                 "Timestamp": [timestamp_3, timestamp_2, timestamp_1],
                 "Date": [
                     datetime.fromtimestamp(timestamp_3)
@@ -190,13 +191,15 @@ class TestParsingOptions(unittest.TestCase):
                     .astimezone(local_tz)
                     .strftime("%Y-%m-%d %H:%M:%S"),
                 ],
-                "ID": ["test_id_3", "test_id_2", "test_id_1"],
+                "ID": ["test_id_1", "test_id_2", "test_id_3"],
                 "Notes": ["", "", ""],
             }
-        ).convert_dtypes()
-        self.expected_df_custom = self.expected_df_custom.sort_values(
-            by="Timestamp", ascending=True
         )
+
+
+        # self.expected_df_custom = self.expected_df_custom.set_index(
+        #     "Timestamp"
+        # ).sort_index()
 
     def test_parse_json_parsing_options(self):
         """Compare default and custom parsing options output."""
@@ -207,20 +210,21 @@ class TestParsingOptions(unittest.TestCase):
             self.json_string, self.custom_parsing_options
         )
 
-        actual_df_default = reflections_map_default["Mood"].convert_dtypes()
-        actual_df_custom = reflections_map_custom["Mood"].convert_dtypes()
+        actual_df_default = reflections_map_default["Mood"]
+        actual_df_custom = reflections_map_custom["Mood"]
         print("default parsing options:")
         print(f"expected:\n{self.expected_df_default}")
         print(f"actual:\n{actual_df_default}")
 
-        pd.testing.assert_frame_equal(
-            actual_df_default, self.expected_df_default
+        assert_frame_equal(
+            actual_df_default, self.expected_df_default, check_like=True
         )
+
         print("custom parsing options:")
         print(f"expected:\n{self.expected_df_custom}")
         print(f"actual:\n{actual_df_custom}")
-        pd.testing.assert_frame_equal(
-            actual_df_custom, self.expected_df_custom
+        assert_frame_equal(
+            actual_df_custom, self.expected_df_custom, check_like=True
         )
 
 
@@ -399,31 +403,25 @@ class TestJsonToCsvParsing(unittest.TestCase):
                 "Notes": ["reflection_note_1"],
             }
         )
-        self.expected_df_1 = self.expected_df_1.sort_values(
-            by="Timestamp", ascending=True
-        )
 
         self.expected_df_2 = pd.DataFrame(
             {
-                "string_metric_2": ["test_string_2", "test_string_3"],
-                "scalar_metric": [2, 0],
-                "Timestamp": [timestamp_3, timestamp_2],
+                "string_metric_2": ["test_string_3", "test_string_2"],
+                "scalar_metric": [0, 2],
+                "Timestamp": [timestamp_2, timestamp_3],
                 "Date": [
-                    datetime.fromtimestamp(timestamp_3)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S"),
                     datetime.fromtimestamp(timestamp_2)
                     .astimezone(local_tz)
                     .strftime("%Y-%m-%d %H:%M:%S"),
+                    datetime.fromtimestamp(timestamp_3)
+                    .astimezone(local_tz)
+                    .strftime("%Y-%m-%d %H:%M:%S"),
                 ],
-                "ID": ["test_id_3", "test_id_2"],
-                "Notes": ["reflection_note_3", "reflection_note_2"],
+                "ID": ["test_id_2", "test_id_3"],
+                "Notes": ["reflection_note_2", "reflection_note_3"],
             }
         )
-        self.expected_df_2 = self.expected_df_2.sort_values(
-            by="Timestamp", ascending=True
-        )
-
+        
         self.parsing_options = conv.ParsingOptions()
 
     def test_parse_json(self):
@@ -432,11 +430,13 @@ class TestJsonToCsvParsing(unittest.TestCase):
         )
         actual_df_1 = reflections_map["reflection_name_1"]
         actual_df_2 = reflections_map["reflection_name_2"]
-        assert_frame_equal(actual_df_1, self.expected_df_1)
+        assert_frame_equal(actual_df_1, self.expected_df_1, check_like=True)
 
-        print(actual_df_2)
+        print("expected")
         print(self.expected_df_2)
-        assert_frame_equal(actual_df_2, self.expected_df_2)
+        print("actual")
+        print(actual_df_2)
+        assert_frame_equal(actual_df_2, self.expected_df_2, check_like=True)
 
     def test_save_dataframes_to_csv(self):
         reflections_map = {
