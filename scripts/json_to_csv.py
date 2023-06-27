@@ -37,7 +37,7 @@ def main():
     else:
         options = conv.ParsingOptions()
 
-    reflections_map = conv.parse_json(json_string, options=options)
+    reflections_map = conv.parse_json(json_string, options)
     conv.save_dataframes_to_csv(reflections_map, args.output_dir, args.reflections)
 
 if __name__ == "__main__":

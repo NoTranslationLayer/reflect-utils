@@ -81,7 +81,7 @@ class TestParsingOptions(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 20000
+                "date": 10000
             },
             {
                 "id": "id2",
@@ -114,7 +114,7 @@ class TestParsingOptions(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 10000
+                "date": 20000
             },
             {
                 "id": "id1",
@@ -135,13 +135,13 @@ class TestParsingOptions(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 100
+                "date": 30000
             }
         ]
         """
-        ts3 = 20000 + 978307200
-        ts2 = 10000 + 978307200
-        ts1 = 100 + 978307200
+        ts3 = 10000 + 978307200
+        ts2 = 20000 + 978307200
+        ts1 = 30000 + 978307200
         local_tz = tz.tzlocal()
         self.default_parsing_options = conv.ParsingOptions()
         self.expected_df_default = pd.DataFrame(
@@ -308,7 +308,7 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 20000
+                "date": 10000
             },
             {
                 "id": "id2",
@@ -342,7 +342,7 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 10000
+                "date": 20000
             },
             {
                 "id": "id3",
@@ -376,13 +376,13 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 100
+                "date": 30000
             }
         ]
         """
-        ts3 = 20000 + 978307200
-        ts2 = 10000 + 978307200
-        ts1 = 100 + 978307200
+        ts3 = 10000 + 978307200
+        ts2 = 20000 + 978307200
+        ts1 = 30000 + 978307200
         local_tz = tz.tzlocal()
         self.expected_df_1 = pd.DataFrame(
             {

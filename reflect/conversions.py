@@ -136,6 +136,7 @@ def parse_metrics(
     metrics: List[Dict[str, Any]],
     parsing_options: ParsingOptions,
     existing_columns: List[str],
+    metric_type_map: Dict[str, str],
 ) -> Dict[str, Any]:
     """
     Parse the metrics from a reflection instance into a dictionary.
@@ -145,6 +146,8 @@ def parse_metrics(
         parsing_options (ParsingOptions): The default value options.
         existing_columns (List[str]): List of existing columns in the DataFrame
             for the reflection.
+        metric_type_map (Dict[str, str]): Dictionary to keep track of metric
+            type changes.
 
     Returns:
         dict: A dictionary with metric names as keys and metric values as values.
@@ -156,6 +159,17 @@ def parse_metrics(
 
         if result is not None:
             metric_name, metric_kind, metric_val = result
+            if (
+                metric_name in metric_type_map
+                and metric_type_map[metric_name] != metric_kind
+            ):
+                print(
+                    f"Warning: Metric type for {metric_name} changed from "
+                    f"{metric_type_map[metric_name]} to {metric_kind}"
+                )
+
+            metric_type_map[metric_name] = metric_kind
+
             if metric_val is not None:
                 metric_dict[metric_name] = metric_val
             else:
@@ -165,8 +179,10 @@ def parse_metrics(
 
     for column in existing_columns:
         if column not in metric_dict:
-            metric_dict[column] = parsing_options.get_pre_metric_default(
-                metric_kind
+            metric_dict[column] = parsing_options.get_post_metric_default(
+                metric_type_map[column]
+                if column not in ["Timestamp", "ID", "Notes", "Date"]
+                else None
             )
 
     return metric_dict
@@ -176,6 +192,7 @@ def parse_reflection(
     reflection: Dict,
     parsing_options: ParsingOptions,
     existing_df: pd.DataFrame = None,
+    metric_type_map: Dict[str, str] = None,
 ) -> Tuple[str, pd.DataFrame]:
     """
     Parses an individual reflection instance into a DataFrame, which is
@@ -186,11 +203,13 @@ def parse_reflection(
         parsing_options (ParsingOptions): The default value options.
         existing_df (DataFrame, optional): The existing DataFrame for the
             reflection. Defaults to None.
+        metric_type_map (Dict[str, str]): Dictionary to keep track of metric
+            type changes.
 
     Returns:
-        str: The name of the reflection.
-        pd.DataFrame: A DataFrame where each row corresponds to a reflection
-            instance and each column corresponds to a metric.
+        Tuple[str, pd.DataFrame, Dict[str, str]]: The name of the reflection,
+        a DataFrame where each row corresponds to a reflection instance and
+        each column corresponds to a metric, and the updated metric type map.
     """
     name = reflection["name"]
     apple_timestamp = reflection["date"]
@@ -212,23 +231,17 @@ def parse_reflection(
         existing_df.columns.tolist() if existing_df is not None else []
     )
     reflection_row = parse_metrics(
-        reflection["metrics"], parsing_options, existing_columns
+        reflection["metrics"],
+        parsing_options,
+        existing_columns,
+        metric_type_map,
     )
     reflection_row["Timestamp"] = timestamp
     reflection_row["Date"] = date
     reflection_row["ID"] = reflection["id"]
     reflection_row["Notes"] = reflection.get("notes")
 
-    # Use post_metric_default for any columns in existing_df not present in this reflection instance
-    # TODO(@syler): fix lookup by type, not column name
-    if existing_df is not None:
-        for column in existing_df.columns:
-            if column not in reflection_row:
-                reflection_row[
-                    column
-                ] = parsing_options.get_post_metric_default(column)
-
-    return name, pd.DataFrame([reflection_row])
+    return name, pd.DataFrame([reflection_row]), metric_type_map
 
 
 def parse_json(
@@ -249,15 +262,32 @@ def parse_json(
     data = json.loads(json_string)
 
     # Sort the list of dictionaries by "date" in ascending order
-    data = sorted(data, key=lambda x: x['date'])
+    data = sorted(data, key=lambda x: x["date"], reverse=True)
 
     reflections_map = {}
-    for reflection in data:
+    metric_type_map = {}  # track metric types
+
+    for idx, reflection in enumerate(data):
+        print(idx)
+        print(reflection)
         existing_df = reflections_map.get(reflection["name"])
-        name, df = parse_reflection(reflection, parsing_options, existing_df)
+        name, df, metric_type_map = parse_reflection(
+            reflection, parsing_options, existing_df, metric_type_map
+        )
         if name in reflections_map:
+            new_columns = set(df.columns) - set(reflections_map[name].columns)
+            for column in new_columns:
+                if column in metric_type_map:
+                    print(f"added column {column}")
+                    # Fill the existing dataframe with pre_metric_default 
+                    # values for new columns
+                    reflections_map[name][
+                        column
+                    ] = parsing_options.get_pre_metric_default(
+                        metric_type_map[column]
+                    )
             reflections_map[name] = pd.concat(
-                [df, reflections_map[name]], ignore_index=True
+                [reflections_map[name], df], ignore_index=True
             )
         else:
             reflections_map[name] = df
