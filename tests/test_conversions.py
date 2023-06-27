@@ -63,7 +63,7 @@ class TestParsingOptions(unittest.TestCase):
         self.json_string = """
         [
             {
-                "id": "id1",
+                "id": "id3",
                 "notes": "",
                 "name": "Mood",
                 "metrics": [
@@ -81,7 +81,7 @@ class TestParsingOptions(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 707233858.41729798
+                "date": 20000
             },
             {
                 "id": "id2",
@@ -114,16 +114,16 @@ class TestParsingOptions(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 707233859.41729797
+                "date": 10000
             },
             {
-                "id": "id3",
+                "id": "id1",
                 "notes": "",
                 "name": "Mood",
                 "metrics": [
                     {
                         "group": "",
-                        "id": "metric_id_1",
+                        "id": "metric_id1",
                         "kind": {
                             "rating": {
                                 "_0": {
@@ -135,13 +135,13 @@ class TestParsingOptions(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 707233860.41729796
+                "date": 100
             }
         ]
         """
-        ts3 = 707233858.41729798 + 978307200
-        ts2 = 707233859.41729797 + 978307200
-        ts1 = 707233860.41729796 + 978307200
+        ts3 = 20000 + 978307200
+        ts2 = 10000 + 978307200
+        ts1 = 100 + 978307200
         local_tz = tz.tzlocal()
         self.default_parsing_options = conv.ParsingOptions()
         self.expected_df_default = pd.DataFrame(
@@ -160,7 +160,7 @@ class TestParsingOptions(unittest.TestCase):
                     .astimezone(local_tz)
                     .strftime("%Y-%m-%d %H:%M:%S"),
                 ],
-                "ID": ["id3", "id2", "id1"],
+                "ID": ["id1", "id2", "id3"],
                 "Notes": ["", "", ""],
             }
         )
@@ -191,7 +191,7 @@ class TestParsingOptions(unittest.TestCase):
                     .astimezone(local_tz)
                     .strftime("%Y-%m-%d %H:%M:%S"),
                 ],
-                "ID": ["id3", "id2", "id1"],
+                "ID": ["id1", "id2", "id3"],
                 "Notes": ["", "", ""],
             }
         )
@@ -233,7 +233,7 @@ class TestJsonToCsvParsing(unittest.TestCase):
         self.json_string = """
         [
             {
-                "id": "id3",
+                "id": "id1",
                 "notes": "Note 3",
                 "name": "Reflection2",
                 "metrics": [
@@ -308,7 +308,7 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 707233858.41729798
+                "date": 20000
             },
             {
                 "id": "id2",
@@ -342,10 +342,10 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 707233859.41729797
+                "date": 10000
             },
             {
-                "id": "id1",
+                "id": "id3",
                 "notes": "Note 1",
                 "name": "Reflection1",
                 "metrics": [
@@ -376,13 +376,13 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "recorded": true
                     }
                 ],
-                "date": 707233860.41729796
+                "date": 100
             }
         ]
         """
-        ts3 = 707233858.41729798 + 978307200
-        ts2 = 707233859.41729797 + 978307200
-        ts1 = 707233860.41729796 + 978307200
+        ts3 = 20000 + 978307200
+        ts2 = 10000 + 978307200
+        ts1 = 100 + 978307200
         local_tz = tz.tzlocal()
         self.expected_df_1 = pd.DataFrame(
             {
@@ -399,7 +399,7 @@ class TestJsonToCsvParsing(unittest.TestCase):
                     .astimezone(local_tz)
                     .strftime("%Y-%m-%d %H:%M:%S")
                 ],
-                "ID": ["id3"],
+                "ID": ["id1"],
                 "Notes": ["Note 3"],
             }
         )
@@ -417,7 +417,7 @@ class TestJsonToCsvParsing(unittest.TestCase):
                     .astimezone(local_tz)
                     .strftime("%Y-%m-%d %H:%M:%S"),
                 ],
-                "ID": ["id1", "id2"],
+                "ID": ["id3", "id2"],
                 "Notes": ["Note 1", "Note 2"],
             }
         )
