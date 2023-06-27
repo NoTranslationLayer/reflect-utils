@@ -107,7 +107,9 @@ class ParsingOptions:
             raise
 
 
-def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
+def parse_metric_value(
+    metric: Dict[str, Any]
+) -> Optional[Tuple[str, str, Any]]:
     """
     This function parses the value of a given metric based on its kind.
 
@@ -116,16 +118,19 @@ def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
         a metric, including its kind and value.
 
     Returns:
-        (str, str, Any): A tuple with the name, kind, and the parsed value of
-        the metric, if it exists and is recorded. Otherwise, returns None.
+        Optional[Tuple[str, str, Any]]: A tuple with the name, kind, and the parsed
+        value of the metric, if it exists and is recorded. Otherwise, returns
+        None.
 
     Raises:
-        KeyError: If "kind" key does not exist in the metric or its value is
-        empty.
+        KeyError: If "kind" key does not exist in the metric.
+        ValueError: If "kind" key exists but its value is empty.
     """
     if "kind" not in metric or not metric["kind"]:
         raise KeyError(f'"kind" not found in metric: {metric}')
+
     metric_kind = list(metric["kind"].keys())[0]
+
     # The "_0" string is an artifact of how Swift's JSONEncoder handles
     # encoding of enum cases with associated values. See Apple
     # documentation of JSONencoder in Swift:
@@ -152,10 +157,14 @@ def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
                 value = metric_content["scalar"]
         except KeyError:
             value = None
-            print(f"failed to retrieve value from metric: {metric}")
+            print(
+                f"failed to retrieve value from metric: {metric} of kind "
+                f"{metric_kind}"
+            )
         if "recorded" in metric and not metric["recorded"]:
             value = None
         return metric_name, metric_kind, value
+
     return None
 
 
@@ -205,16 +214,19 @@ def parse_metrics(
                 )
 
     # Check if a metric was removed from the template. If the metric is present
-    # in the reflection at the time it was recorded, we have an implicit 
-    # representation of the template at that point in time, so any metric name 
-    # that was present in the previous instances but is not present in this 
+    # in the reflection at the time it was recorded, we have an implicit
+    # representation of the template at that point in time, so any metric name
+    # that was present in the previous instances but is not present in this
     # reflection means that the metric was removed at some point in time.
     for column in existing_columns:
-        if column not in metric_dict:
+        if column not in metric_dict and column not in [
+            "Timestamp",
+            "ID",
+            "Notes",
+            "Date",
+        ]:
             metric_dict[column] = parsing_options.get_post_metric_default(
                 metric_type_map[column]
-                if column not in ["Timestamp", "ID", "Notes", "Date"]
-                else None
             )
 
     return metric_dict
