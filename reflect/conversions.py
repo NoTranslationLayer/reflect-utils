@@ -126,8 +126,8 @@ def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
     if "kind" not in metric or not metric["kind"]:
         raise KeyError(f'"kind" not found in metric: {metric}')
     metric_kind = list(metric["kind"].keys())[0]
-    # The "_0" string is an artifact of how Swift's JSONEncoder handles 
-    # encoding of enum cases with associated values. See Apple 
+    # The "_0" string is an artifact of how Swift's JSONEncoder handles
+    # encoding of enum cases with associated values. See Apple
     # documentation of JSONencoder in Swift:
     # https://developer.apple.com/documentation/foundation/jsonencoder
     metric_content = metric["kind"][metric_kind].get("_0")
@@ -204,6 +204,11 @@ def parse_metrics(
                     metric_kind
                 )
 
+    # Check if a metric was removed from the template. If the metric is present
+    # in the reflection at the time it was recorded, we have an implicit 
+    # representation of the template at that point in time, so any metric name 
+    # that was present in the previous instances but is not present in this 
+    # reflection means that the metric was removed at some point in time.
     for column in existing_columns:
         if column not in metric_dict:
             metric_dict[column] = parsing_options.get_post_metric_default(
