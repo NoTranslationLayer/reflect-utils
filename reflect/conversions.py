@@ -69,21 +69,42 @@ class ParsingOptions:
 
     def get_default_value(self, metric_kind: str):
         """Returns the default value for a given metric kind."""
-        return self.defaults.get(metric_kind)
+        try:
+            return self.defaults[metric_kind]
+        except KeyError:
+            print(
+                f"KeyError: {metric_kind} not found in defaults. "
+                f"Supported keys are {list(self.defaults.keys())}"
+            )
+            raise
 
     def get_pre_metric_default(self, metric_kind: str):
         """
         Returns the default value for a given metric kind before its first
         occurrence.
         """
-        return self.pre_metric_defaults.get(metric_kind)
+        try:
+            return self.pre_metric_defaults[metric_kind]
+        except KeyError:
+            print(
+                f"KeyError: {metric_kind} not found in pre_metric_defaults. "
+                f"Supported keys are {list(self.pre_metric_defaults.keys())}"
+            )
+            raise
 
     def get_post_metric_default(self, metric_kind: str):
         """
         Returns the default value for a given metric kind after it has been
         removed from subsequent reflection instances.
         """
-        return self.post_metric_defaults.get(metric_kind)
+        try:
+            return self.post_metric_defaults[metric_kind]
+        except KeyError:
+            print(
+                f"KeyError: {metric_kind} not found in post_metric_defaults. "
+                f"Supported keys are {list(self.post_metric_defaults.keys())}"
+            )
+            raise
 
 
 def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
@@ -107,28 +128,30 @@ def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
     metric_kind = list(metric["kind"].keys())[0]
     metric_content = metric["kind"][metric_kind].get("_0")
 
-    if metric_content is not None:
-        metric_name = metric_content.get("name")
-        if metric_name is not None:
-            try:
-                if metric_kind == "string":
-                    value = metric_content["string"]
-                elif metric_kind == "choice":
-                    value = metric_content["choice"]
-                elif metric_kind == "bool":
-                    value = metric_content["bool"]
-                elif metric_kind == "unit":
-                    value = metric_content["value"]
-                elif metric_kind == "rating":
-                    value = metric_content["score"]
-                elif metric_kind == "scalar":
-                    value = metric_content["scalar"]
-            except KeyError:
-                value = None
-            if "recorded" in metric and not metric["recorded"]:
-                value = None
-                print(metric_name, metric_kind, value)
-            return metric_name, metric_kind, value
+    if metric_content is None:
+        raise ValueError(f"unexpected metric contents in JSON: {metric}")
+
+    metric_name = metric_content.get("name")
+    if metric_name is not None:
+        try:
+            if metric_kind == "string":
+                value = metric_content["string"]
+            elif metric_kind == "choice":
+                value = metric_content["choice"]
+            elif metric_kind == "bool":
+                value = metric_content["bool"]
+            elif metric_kind == "unit":
+                value = metric_content["value"]
+            elif metric_kind == "rating":
+                value = metric_content["score"]
+            elif metric_kind == "scalar":
+                value = metric_content["scalar"]
+        except KeyError:
+            value = None
+        if "recorded" in metric and not metric["recorded"]:
+            value = None
+            print(metric_name, metric_kind, value)
+        return metric_name, metric_kind, value
     return None
 
 
@@ -279,7 +302,7 @@ def parse_json(
             for column in new_columns:
                 if column in metric_type_map:
                     print(f"added column {column}")
-                    # Fill the existing dataframe with pre_metric_default 
+                    # Fill the existing dataframe with pre_metric_default
                     # values for new columns
                     reflections_map[name][
                         column
