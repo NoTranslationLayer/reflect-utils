@@ -148,9 +148,9 @@ def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
                 value = metric_content["scalar"]
         except KeyError:
             value = None
+            print(f"failed to retrieve value from metric: {metric}")
         if "recorded" in metric and not metric["recorded"]:
             value = None
-            print(metric_name, metric_kind, value)
         return metric_name, metric_kind, value
     return None
 
