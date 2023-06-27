@@ -311,9 +311,7 @@ def parse_json(
     reflections_map = {}
     metric_type_map = {}  # track metric types
 
-    for idx, reflection in enumerate(data):
-        print(idx)
-        print(reflection)
+    for reflection in data:
         existing_df = reflections_map.get(reflection["name"])
         name, df, metric_type_map = parse_reflection(
             reflection, parsing_options, existing_df, metric_type_map
@@ -322,7 +320,6 @@ def parse_json(
             new_columns = set(df.columns) - set(reflections_map[name].columns)
             for column in new_columns:
                 if column in metric_type_map:
-                    print(f"added column {column}")
                     # Fill the existing dataframe with pre_metric_default
                     # values for new columns
                     reflections_map[name][
