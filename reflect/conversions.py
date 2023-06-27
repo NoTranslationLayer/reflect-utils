@@ -126,6 +126,10 @@ def parse_metric_value(metric: Dict[str, Any]) -> Optional[Any]:
     if "kind" not in metric or not metric["kind"]:
         raise KeyError(f'"kind" not found in metric: {metric}')
     metric_kind = list(metric["kind"].keys())[0]
+    # The "_0" string is an artifact of how Swift's JSONEncoder handles 
+    # encoding of enum cases with associated values. See Apple 
+    # documentation of JSONencoder in Swift:
+    # https://developer.apple.com/documentation/foundation/jsonencoder
     metric_content = metric["kind"][metric_kind].get("_0")
 
     if metric_content is None:
