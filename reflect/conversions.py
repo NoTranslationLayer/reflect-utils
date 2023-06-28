@@ -155,14 +155,15 @@ def parse_metric_value(
                 value = metric_content["score"]
             elif metric_kind == "scalar":
                 value = metric_content["scalar"]
+            else:
+                print(f"unsupported metric kind: {metric_kind}")
+                return None
         except KeyError:
+            # this happens with some historical data, where the metric is empty
             value = None
-            print(
-                f"failed to retrieve value from metric: {metric} of kind "
-                f"{metric_kind}"
-            )
         if "recorded" in metric and not metric["recorded"]:
             value = None
+        
         return metric_name, metric_kind, value
 
     return None
