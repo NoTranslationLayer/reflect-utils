@@ -310,10 +310,11 @@ def parse_json(
     data = sorted(data, key=lambda x: x["date"], reverse=True)
 
     reflections_map = {}
-    metric_type_map = {}  # track metric types
+    metric_type_map_map = {}  # track metric types
 
     for reflection in data:
         existing_df = reflections_map.get(reflection["name"])
+        metric_type_map = metric_type_map_map.get(reflection["name"], {})
         name, df, metric_type_map = parse_reflection(
             reflection, parsing_options, existing_df, metric_type_map
         )
@@ -333,6 +334,8 @@ def parse_json(
             )
         else:
             reflections_map[name] = df
+        # update metric type map for that reflection
+        metric_type_map_map[name] = metric_type_map
 
     return reflections_map
 
