@@ -163,7 +163,7 @@ def parse_metric_value(
             value = None
         if "recorded" in metric and not metric["recorded"]:
             value = None
-        
+
         return metric_name, metric_kind, value
 
     return None
@@ -307,7 +307,7 @@ def parse_json(
     data = json.loads(json_string)
 
     # Sort the list of dictionaries by "date" in ascending order
-    data = sorted(data, key=lambda x: x["date"], reverse=True)
+    data = sorted(data, key=lambda x: x["date"], reverse=False)
 
     reflections_map = {}
     metric_type_map_map = {}  # track metric types
