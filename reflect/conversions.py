@@ -106,6 +106,28 @@ class ParsingOptions:
             )
             raise
 
+def convert_timestamp(apple_timestamp: float) -> str:
+    """
+    Convert an Apple-style timestamp to a local time string.
+    
+    Args:
+        apple_timestamp (float): The Apple timestamp to convert.
+
+    Returns:
+        str: The timestamp in local time as a string formatted as 
+             "YYYY-MM-DD HH:MM:SS".
+    """
+    # Convert the Apple timestamp to a Python timestamp
+    # 978307200 is the number of seconds between 1970-01-01T00:00:00Z and 
+    # 2001-01-01T00:00:00Z
+    timestamp = apple_timestamp + 978307200
+
+    # Convert the timestamp to datetime and adjust it to the local timezone
+    local_tz = tz.tzlocal()
+    local_datetime = datetime.fromtimestamp(timestamp).astimezone(local_tz)
+
+    return local_datetime.strftime("%Y-%m-%d %H:%M:%S")
+
 
 def parse_metric_value(
     metric: Dict[str, Any]
@@ -259,19 +281,6 @@ def parse_reflection(
     name = reflection["name"]
     apple_timestamp = reflection["date"]
 
-    # Convert the Apple timestamp to a Python timestamp
-    # 978307200 is the number of seconds between 1970-01-01T00:00:00Z and
-    # 2001-01-01T00:00:00Z
-    timestamp = apple_timestamp + 978307200
-
-    # Convert the timestamp to datetime and adjust it to the local timezone
-    local_tz = tz.tzlocal()
-    date = (
-        datetime.fromtimestamp(timestamp)
-        .astimezone(local_tz)
-        .strftime("%Y-%m-%d %H:%M:%S")
-    )
-
     existing_columns = (
         existing_df.columns.tolist() if existing_df is not None else []
     )
@@ -281,8 +290,8 @@ def parse_reflection(
         existing_columns,
         metric_type_map,
     )
-    reflection_row["Timestamp"] = timestamp
-    reflection_row["Date"] = date
+    reflection_row["Timestamp"] = apple_timestamp
+    reflection_row["Date"] = convert_timestamp(apple_timestamp)
     reflection_row["ID"] = reflection["id"]
     reflection_row["Notes"] = reflection.get("notes")
 

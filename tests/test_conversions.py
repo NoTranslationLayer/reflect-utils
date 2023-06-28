@@ -2,8 +2,6 @@ import unittest
 import os
 import pandas as pd
 import numpy as np
-from datetime import datetime
-from dateutil import tz
 from pandas.testing import assert_frame_equal
 
 from reflect import conversions as conv
@@ -55,7 +53,8 @@ class TestParsingMetricValue(unittest.TestCase):
 class TestParsingOptions(unittest.TestCase):
     def setUp(self):
         """
-        Create a test JSON which has three reflection instances: (not reverse chronological order in JSON)
+        Create a test JSON which has three reflection instances: (not reverse 
+        chronological order in JSON)
         - one with metric "Perplexed"
         - new metric "Elated" is added, "Perplexed" is present but not recorded
         - "Perplexed" is removed, only "Elated" remains
@@ -139,10 +138,9 @@ class TestParsingOptions(unittest.TestCase):
             }
         ]
         """
-        ts3 = 707954444.948071 + 978307200
-        ts2 = 705867495.55896401 + 978307200
-        ts1 = 702429159.13179898 + 978307200
-        local_tz = tz.tzlocal()
+        ts3 = 707954444.948071
+        ts2 = 705867495.55896401
+        ts1 = 702429159.13179898
         self.default_parsing_options = conv.ParsingOptions()
         self.expected_df_default = pd.DataFrame(
             {
@@ -150,24 +148,14 @@ class TestParsingOptions(unittest.TestCase):
                 "Elated": [np.nan, 4, 4],
                 "Timestamp": [ts1, ts2, ts3],
                 "Date": [
-                    datetime.fromtimestamp(ts1)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S"),
-                    datetime.fromtimestamp(ts2)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S"),
-                    datetime.fromtimestamp(ts3)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S"),
+                    conv.convert_timestamp(ts1),
+                    conv.convert_timestamp(ts2),
+                    conv.convert_timestamp(ts3),
                 ],
                 "ID": ["id1", "id2", "id3"],
                 "Notes": ["", "", ""],
             }
         )
-
-        # self.expected_df_default = self.expected_df_default.set_index(
-        #     "Timestamp"
-        # ).sort_index()
 
         self.custom_parsing_options = conv.ParsingOptions()
         # define some custom parsing options
@@ -181,25 +169,14 @@ class TestParsingOptions(unittest.TestCase):
                 "Elated": [0, 4, 4],
                 "Timestamp": [ts1, ts2, ts3],
                 "Date": [
-                    datetime.fromtimestamp(ts1)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S"),
-                    datetime.fromtimestamp(ts2)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S"),
-                    datetime.fromtimestamp(ts3)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S"),
+                    conv.convert_timestamp(ts1),
+                    conv.convert_timestamp(ts2),
+                    conv.convert_timestamp(ts3),
                 ],
                 "ID": ["id1", "id2", "id3"],
                 "Notes": ["", "", ""],
             }
         )
-
-
-        # self.expected_df_custom = self.expected_df_custom.set_index(
-        #     "Timestamp"
-        # ).sort_index()
 
     def test_parse_json_parsing_options(self):
         """Compare default and custom parsing options output."""
@@ -256,7 +233,7 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "kind": {
                             "choice": {
                                 "_0": {
-                                    "name": "Chouce Metric",
+                                    "name": "Choice Metric",
                                     "value": [
                                         "choice1",
                                         "choice2"
@@ -380,14 +357,13 @@ class TestJsonToCsvParsing(unittest.TestCase):
             }
         ]
         """
-        ts3 = 707954444.948071 + 978307200
-        ts2 = 705867495.55896401 + 978307200
-        ts1 = 702429159.13179898 + 978307200
-        local_tz = tz.tzlocal()
+        ts3 = 707954444.948071
+        ts2 = 705867495.55896401
+        ts1 = 702429159.13179898
         self.expected_df_1 = pd.DataFrame(
             {
                 "String Metric 3": ["test_string"],
-                "Chouce Metric": ["choice1"],
+                "Choice Metric": ["choice1"],
                 "Bool Metric": [True],
                 "Unit Metric": [
                     15
@@ -395,9 +371,7 @@ class TestJsonToCsvParsing(unittest.TestCase):
                 "Rating Metric": [5],
                 "Timestamp": [ts3],
                 "Date": [
-                    datetime.fromtimestamp(ts3)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S")
+                    conv.convert_timestamp(ts3),
                 ],
                 "ID": ["id1"],
                 "Notes": ["Note 3"],
@@ -407,21 +381,17 @@ class TestJsonToCsvParsing(unittest.TestCase):
         self.expected_df_2 = pd.DataFrame(
             {
                 "String Metric 1": ["string_1", "string_2"],
-                "Scalar Metric 1": [ 2, 0],
+                "Scalar Metric 1": [2, 0],
                 "Timestamp": [ts1, ts2],
                 "Date": [
-                    datetime.fromtimestamp(ts1)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S"),
-                    datetime.fromtimestamp(ts2)
-                    .astimezone(local_tz)
-                    .strftime("%Y-%m-%d %H:%M:%S"),
+                    conv.convert_timestamp(ts1),
+                    conv.convert_timestamp(ts2),
                 ],
                 "ID": ["id3", "id2"],
                 "Notes": ["Note 1", "Note 2"],
             }
         )
-        
+
         self.parsing_options = conv.ParsingOptions()
 
     def test_parse_json(self):
