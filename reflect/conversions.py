@@ -106,19 +106,20 @@ class ParsingOptions:
             )
             raise
 
+
 def convert_timestamp(apple_timestamp: float) -> str:
     """
     Convert an Apple-style timestamp to a local time string.
-    
+
     Args:
         apple_timestamp (float): The Apple timestamp to convert.
 
     Returns:
-        str: The timestamp in local time as a string formatted as 
+        str: The timestamp in local time as a string formatted as
              "YYYY-MM-DD HH:MM:SS".
     """
     # Convert the Apple timestamp to a Python timestamp
-    # 978307200 is the number of seconds between 1970-01-01T00:00:00Z and 
+    # 978307200 is the number of seconds between 1970-01-01T00:00:00Z and
     # 2001-01-01T00:00:00Z
     timestamp = apple_timestamp + 978307200
 
@@ -352,6 +353,7 @@ def parse_json(
 def save_dataframes_to_csv(
     reflections_map: Dict[str, pd.DataFrame],
     output_folder: str,
+    do_anonymize: Optional[bool] = False,
     filter_list: Optional[List[str]] = None,
 ) -> None:
     """
@@ -368,9 +370,82 @@ def save_dataframes_to_csv(
     Returns:
         None
     """
+    if do_anonymize:
+        import nltk
+
+        nltk.download("words")
+
     if filter_list is not None:
         reflections_map = {
             k: v for k, v in reflections_map.items() if k in filter_list
         }
     for name, df in reflections_map.items():
+        if do_anonymize:
+            name, df = anonymize(df)
         df.to_csv(os.path.join(output_folder, f"{name}.csv"), index=False)
+
+
+def anonymize(df: pd.DataFrame) -> Tuple[str, pd.DataFrame]:
+    """
+    Anonymize the input dataframe by removing specific columns, adding a random
+    time offset to the "Date" column, and replacing other column names with a
+    random capitalized word.
+
+    Applies a random linear transformation of the form y = kx to any numerical
+    columns, where k is a random floating point number between 0.5 and 10 and a
+    sign flip is applied with 50% chance.
+
+    Any non-empty string values in the dataframe are replaced with a random
+    word.
+
+    If a column has boolean values, randomly flip the sign of the entire column
+    with a 50% chance.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input dataframe to be anonymized.
+
+    Returns
+    -------
+    Tuple[str, pd.DataFrame]
+        A tuple where the first element is a random capitalized word and the
+        second element is the anonymized dataframe.
+    """
+    import nltk
+    import random
+
+    # Step 1: Remove specified columns
+    df = df.drop(columns=["Notes", "ID", "Timestamp"], errors="ignore")
+
+    # Step 2: Add random time offset to "Date" column
+    if "Date" in df.columns:
+        df["Date"] = pd.to_datetime(df["Date"])
+        random_offset = pd.tseries.offsets.DateOffset(
+            years=np.random.randint(-1000, 1000)
+        )
+        df["Date"] += random_offset
+
+    def random_word():
+        return random.choice(nltk.corpus.words.words()).capitalize()
+
+    # Step 3: Set all values in dataframe to NaN if set_all_nan is True
+    # and apply a random linear transformation to numerical columns
+    # and replace non-empty strings with a random word
+    for col in df.columns:
+        if df[col].dtype == "object":
+            df[col] = df[col].apply(lambda x: random_word() if x else x)
+        elif df[col].dtype in ["int64", "float64"]:
+            k = random.uniform(0.5, 10) * random.choice([-1, 1])
+            df[col] = df[col] * k
+        elif df[col].dtype == "bool":
+            if random.choice([True, False]):
+                df[col] = ~df[col]
+
+    # Step 4: Replace other column names with random capitalized word
+    new_columns = {col: random_word() for col in df.columns if col != "Date"}
+    df = df.rename(columns=new_columns)
+
+    name = random_word()
+
+    return name, df
