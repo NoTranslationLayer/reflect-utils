@@ -353,7 +353,7 @@ def parse_json(
 def save_dataframes_to_csv(
     reflections_map: Dict[str, pd.DataFrame],
     output_folder: str,
-    anonymize: Optional[bool] = False,
+    do_anonymize: Optional[bool] = False,
     set_all_nan: Optional[bool] = False,
     filter_list: Optional[List[str]] = None,
 ) -> None:
@@ -371,23 +371,27 @@ def save_dataframes_to_csv(
     Returns:
         None
     """
+    if do_anonymize:
+        import nltk
+        nltk.download("words")
+
     if filter_list is not None:
         reflections_map = {
             k: v for k, v in reflections_map.items() if k in filter_list
         }
     for name, df in reflections_map.items():
-        if anonymize:
-            df = anonymize(df, set_all_nan)
+        if do_anonymize:
+            name, df = anonymize(df, set_all_nan)
         df.to_csv(os.path.join(output_folder, f"{name}.csv"), index=False)
 
 
 def anonymize(
     df: pd.DataFrame, set_all_nan: Optional[bool] = False
-) -> pd.DataFrame:
+) -> Tuple[str, pd.DataFrame]:
     """
     Anonymize the input dataframe by removing specific columns, adding a random
-    time offset to the "Date" column, setting all other values to NaN if s
-    et_all_nan is True, and replacing other column names with a random
+    time offset to the "Date" column, setting all other values to NaN if 
+    set_all_nan is True, and replacing other column names with a random
     capitalized word.
 
     Parameters
@@ -401,25 +405,26 @@ def anonymize(
 
     Returns
     -------
-    df : pd.DataFrame
-        The anonymized dataframe.
+    Tuple[str, pd.DataFrame]
+        A tuple where the first element is a random capitalized word and the second
+        element is the anonymized dataframe.
     """
     import nltk
     import random
-
-    nltk.download("words")
 
     # Step 1: Remove specified columns
     df = df.drop(columns=["Notes", "ID", "Timestamp"], errors="ignore")
 
     # Step 2: Add random time offset to "Date" column
     if "Date" in df.columns:
-        random_offset = pd.series.DateOffset(
+        df["Date"] = pd.to_datetime(df["Date"])
+        random_offset = pd.tseries.offsets.DateOffset(
             years=np.random.randint(-1000, 1000)
         )
         df["Date"] += random_offset
 
     # Step 3: Set all values in dataframe to NaN if set_all_nan is True
+    # TODO(@syler): do some nicer data transformations here
     if set_all_nan:
         for col in df.columns:
             if col != "Date":
@@ -432,4 +437,6 @@ def anonymize(
     new_columns = {col: random_word() for col in df.columns if col != "Date"}
     df = df.rename(columns=new_columns)
 
-    return df
+    name = random_word()
+
+    return name, df
