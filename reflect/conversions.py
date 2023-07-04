@@ -354,7 +354,6 @@ def save_dataframes_to_csv(
     reflections_map: Dict[str, pd.DataFrame],
     output_folder: str,
     do_anonymize: Optional[bool] = False,
-    set_all_nan: Optional[bool] = False,
     filter_list: Optional[List[str]] = None,
 ) -> None:
     """
@@ -373,6 +372,7 @@ def save_dataframes_to_csv(
     """
     if do_anonymize:
         import nltk
+
         nltk.download("words")
 
     if filter_list is not None:
@@ -381,33 +381,36 @@ def save_dataframes_to_csv(
         }
     for name, df in reflections_map.items():
         if do_anonymize:
-            name, df = anonymize(df, set_all_nan)
+            name, df = anonymize(df)
         df.to_csv(os.path.join(output_folder, f"{name}.csv"), index=False)
 
 
-def anonymize(
-    df: pd.DataFrame, set_all_nan: Optional[bool] = False
-) -> Tuple[str, pd.DataFrame]:
+def anonymize(df: pd.DataFrame) -> Tuple[str, pd.DataFrame]:
     """
     Anonymize the input dataframe by removing specific columns, adding a random
-    time offset to the "Date" column, setting all other values to NaN if 
-    set_all_nan is True, and replacing other column names with a random
-    capitalized word.
+    time offset to the "Date" column, and replacing other column names with a
+    random capitalized word.
+
+    Applies a random linear transformation of the form y = kx to any numerical
+    columns, where k is a random floating point number between 0.5 and 10 and a
+    sign flip is applied with 50% chance.
+
+    Any non-empty string values in the dataframe are replaced with a random
+    word.
+
+    If a column has boolean values, randomly flip the sign of the entire column
+    with a 50% chance.
 
     Parameters
     ----------
     df : pd.DataFrame
         Input dataframe to be anonymized.
 
-    set_all_nan : Optional[bool]
-        If True, set all values in the dataframe to NaN except for the "Date"
-        column.
-
     Returns
     -------
     Tuple[str, pd.DataFrame]
-        A tuple where the first element is a random capitalized word and the second
-        element is the anonymized dataframe.
+        A tuple where the first element is a random capitalized word and the
+        second element is the anonymized dataframe.
     """
     import nltk
     import random
@@ -423,17 +426,23 @@ def anonymize(
         )
         df["Date"] += random_offset
 
-    # Step 3: Set all values in dataframe to NaN if set_all_nan is True
-    # TODO(@syler): do some nicer data transformations here
-    if set_all_nan:
-        for col in df.columns:
-            if col != "Date":
-                df[col] = np.nan
-
-    # Step 4: Replace other column names with random capitalized word
     def random_word():
         return random.choice(nltk.corpus.words.words()).capitalize()
 
+    # Step 3: Set all values in dataframe to NaN if set_all_nan is True
+    # and apply a random linear transformation to numerical columns
+    # and replace non-empty strings with a random word
+    for col in df.columns:
+        if df[col].dtype == "object":
+            df[col] = df[col].apply(lambda x: random_word() if x else x)
+        elif df[col].dtype in ["int64", "float64"]:
+            k = random.uniform(0.5, 10) * random.choice([-1, 1])
+            df[col] = df[col] * k
+        elif df[col].dtype == "bool":
+            if random.choice([True, False]):
+                df[col] = ~df[col]
+
+    # Step 4: Replace other column names with random capitalized word
     new_columns = {col: random_word() for col in df.columns if col != "Date"}
     df = df.rename(columns=new_columns)
 

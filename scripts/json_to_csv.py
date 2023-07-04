@@ -47,12 +47,6 @@ def main():
         action="store_true",
         help="Anonymize output CSV files",
     )
-    parser.add_argument(
-        "-n",
-        "--nan",
-        action="store_true",
-        help="Write all values of CSV to NaN when anonymizing",
-    )
 
     args = parser.parse_args()
 
@@ -71,7 +65,6 @@ def main():
         reflections_map,
         args.output_dir,
         do_anonymize=args.anonymize,
-        set_all_nan=args.nan,
         filter_list=args.reflections,
     )
 
