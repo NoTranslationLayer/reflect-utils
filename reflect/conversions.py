@@ -106,19 +106,20 @@ class ParsingOptions:
             )
             raise
 
+
 def convert_timestamp(apple_timestamp: float) -> str:
     """
     Convert an Apple-style timestamp to a local time string.
-    
+
     Args:
         apple_timestamp (float): The Apple timestamp to convert.
 
     Returns:
-        str: The timestamp in local time as a string formatted as 
+        str: The timestamp in local time as a string formatted as
              "YYYY-MM-DD HH:MM:SS".
     """
     # Convert the Apple timestamp to a Python timestamp
-    # 978307200 is the number of seconds between 1970-01-01T00:00:00Z and 
+    # 978307200 is the number of seconds between 1970-01-01T00:00:00Z and
     # 2001-01-01T00:00:00Z
     timestamp = apple_timestamp + 978307200
 
@@ -352,6 +353,8 @@ def parse_json(
 def save_dataframes_to_csv(
     reflections_map: Dict[str, pd.DataFrame],
     output_folder: str,
+    anonymize: Optional[bool] = False,
+    set_all_nan: Optional[bool] = False,
     filter_list: Optional[List[str]] = None,
 ) -> None:
     """
@@ -373,4 +376,60 @@ def save_dataframes_to_csv(
             k: v for k, v in reflections_map.items() if k in filter_list
         }
     for name, df in reflections_map.items():
+        if anonymize:
+            df = anonymize(df, set_all_nan)
         df.to_csv(os.path.join(output_folder, f"{name}.csv"), index=False)
+
+
+def anonymize(
+    df: pd.DataFrame, set_all_nan: Optional[bool] = False
+) -> pd.DataFrame:
+    """
+    Anonymize the input dataframe by removing specific columns, adding a random
+    time offset to the "Date" column, setting all other values to NaN if s
+    et_all_nan is True, and replacing other column names with a random
+    capitalized word.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input dataframe to be anonymized.
+
+    set_all_nan : Optional[bool]
+        If True, set all values in the dataframe to NaN except for the "Date"
+        column.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        The anonymized dataframe.
+    """
+    import nltk
+    import random
+
+    nltk.download("words")
+
+    # Step 1: Remove specified columns
+    df = df.drop(columns=["Notes", "ID", "Timestamp"], errors="ignore")
+
+    # Step 2: Add random time offset to "Date" column
+    if "Date" in df.columns:
+        random_offset = pd.series.DateOffset(
+            years=np.random.randint(-1000, 1000)
+        )
+        df["Date"] += random_offset
+
+    # Step 3: Set all values in dataframe to NaN if set_all_nan is True
+    if set_all_nan:
+        for col in df.columns:
+            if col != "Date":
+                df[col] = np.nan
+
+    # Step 4: Replace other column names with random capitalized word
+    def random_word():
+        return random.choice(nltk.corpus.words.words()).capitalize()
+
+    new_columns = {col: random_word() for col in df.columns if col != "Date"}
+    df = df.rename(columns=new_columns)
+
+    return df
