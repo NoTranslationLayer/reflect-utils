@@ -141,8 +141,7 @@ def parse_metric_value(
 
     Returns:
         Optional[Tuple[str, str, Any]]: A tuple with the name, kind, and the parsed
-        value of the metric, if it exists and is recorded. Otherwise, returns
-        None.
+        value of the metric, if it exists. Otherwise, returns None.
 
     Raises:
         KeyError: If "kind" key does not exist in the metric.
@@ -152,12 +151,7 @@ def parse_metric_value(
         raise KeyError(f'"kind" not found in metric: {metric}')
 
     metric_kind = list(metric["kind"].keys())[0]
-
-    # The "_0" string is an artifact of how Swift's JSONEncoder handles
-    # encoding of enum cases with associated values. See Apple
-    # documentation of JSONencoder in Swift:
-    # https://developer.apple.com/documentation/foundation/jsonencoder
-    metric_content = metric["kind"][metric_kind].get("_0")
+    metric_content = metric["kind"][metric_kind]
 
     if metric_content is None:
         raise ValueError(f"unexpected metric contents in JSON: {metric}")
@@ -181,9 +175,7 @@ def parse_metric_value(
                 print(f"unsupported metric kind: {metric_kind}")
                 return None
         except KeyError:
-            # this happens with some historical data, where the metric is empty
-            value = None
-        if "recorded" in metric and not metric["recorded"]:
+            # this happens if the metric content is empty
             value = None
 
         return metric_name, metric_kind, value
@@ -339,7 +331,7 @@ def parse_json(
                         metric_type_map[column]
                     )
             reflections_map[name] = pd.concat(
-                [reflections_map[name], df], ignore_index=True
+                [reflections_map[name], df], ignore_index=True,
             )
         else:
             reflections_map[name] = df

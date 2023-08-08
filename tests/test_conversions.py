@@ -17,7 +17,7 @@ class TestParsingMetricValue(unittest.TestCase):
 
     def setUp(self):
         self.metric_data = {
-            "kind": {"bool": {"_0": {"name": "No Gi", "bool": False}}},
+            "kind": {"bool": {"name": "No Gi", "bool": False}},
             "id": "994FAC7F-FA9D-4B5E-9896-F72165F72A6C",
             "group": "Info",
         }
@@ -27,10 +27,9 @@ class TestParsingMetricValue(unittest.TestCase):
             "group": "Info",
         }
         self.metric_not_recorded = {
-            "kind": {"bool": {"_0": {"name": "No Gi", "bool": False}}},
+            "kind": {"bool": {"name": "No Gi"}},
             "id": "994FAC7F-FA9D-4B5E-9896-F72165F72A6C",
             "group": "Info",
-            "recorded": False,
         }
 
     def test_parse_metric_value(self):
@@ -71,13 +70,10 @@ class TestParsingOptions(unittest.TestCase):
                         "id": "metric_id_4",
                         "kind": {
                             "rating": {
-                                "_0": {
-                                    "name": "Elated",
-                                    "score": 4
-                                }
+                                "name": "Elated",
+                                "score": 4
                             }
-                        },
-                        "recorded": true
+                        }
                     }
                 ],
                 "date": 707954444.948071
@@ -92,25 +88,19 @@ class TestParsingOptions(unittest.TestCase):
                         "id": "metric_id_3",
                         "kind": {
                             "rating": {
-                                "_0": {
-                                    "name": "Perplexed"
-                                }
+                                "name": "Perplexed"
                             }
-                        },
-                        "recorded": false
+                        }
                     },
                     {
                         "group": "",
                         "id": "metric_id_2",
                         "kind": {
                             "rating": {
-                                "_0": {
-                                    "name": "Elated",
-                                    "score": 4
-                                }
+                                "name": "Elated",
+                                "score": 4
                             }
-                        },
-                        "recorded": true
+                        }
                     }
                 ],
                 "date": 705867495.55896401
@@ -125,13 +115,10 @@ class TestParsingOptions(unittest.TestCase):
                         "id": "metric_id1",
                         "kind": {
                             "rating": {
-                                "_0": {
-                                    "name": "Perplexed",
-                                    "score": 3
-                                }
+                                "name": "Perplexed",
+                                "score": 3
                             }
-                        },
-                        "recorded": true
+                        }
                     }
                 ],
                 "date": 702429159.13179898
@@ -219,70 +206,55 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "id": "metric_id",
                         "kind": {
                             "string": {
-                                "_0": {
-                                    "name": "String Metric 3",
-                                    "string": "test_string"
-                                }
+                                "name": "String Metric 3",
+                                "string": "test_string"
                             }
-                        },
-                        "recorded": true
+                        }
                     },
                     {
                         "group": "",
                         "id": "metric_id_2",
                         "kind": {
                             "choice": {
-                                "_0": {
-                                    "name": "Choice Metric",
-                                    "value": [
-                                        "choice1",
-                                        "choice2"
-                                    ],
-                                    "choice": "choice1"
-                                }
+                                "name": "Choice Metric",
+                                "value": [
+                                    "choice1",
+                                    "choice2"
+                                ],
+                                "choice": "choice1"
                             }
-                        },
-                        "recorded": true
+                        }
                     },
                     {
                         "group": "",
                         "id": "metric_id_3",
                         "kind": {
                             "bool": {
-                                "_0": {
-                                    "name": "Bool Metric",
-                                    "bool": true
-                                }
+                                "name": "Bool Metric",
+                                "bool": true
                             }
-                        },
-                        "recorded": true
+                        }
                     },
                     {
                         "group": "",
                         "id": "metric_id_4",
                         "kind": {
                             "unit": {
-                                "_0": {
-                                    "name": "Unit Metric",
-                                    "value": 15,
-                                    "unit": "min"
-                                }
+                                "name": "Unit Metric",
+                                "value": 15,
+                                "unit": "min"
                             }
-                        },
-                        "recorded": true
+                        }
                     },
                     {
                         "group": "",
                         "id": "metric_id_5",
                         "kind": {
                             "rating": {
-                                "_0": {
-                                    "name": "Rating Metric",
-                                    "score": 5
-                                }
+                                "name": "Rating Metric",
+                                "score": 5
                             }
-                        },
-                        "recorded": true
+                        }
                     }
                 ],
                 "date": 707954444.948071
@@ -297,26 +269,20 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "id": "metric_id_6",
                         "kind": {
                             "string": {
-                                "_0": {
-                                    "name": "String Metric 1",
-                                    "string": "string_2"
-                                }
+                                "name": "String Metric 1",
+                                "string": "string_2"
                             }
-                        },
-                        "recorded": true
+                        }
                     },
                     {
                         "group": "",
                         "id": "metric_id_7",
                         "kind": {
                             "scalar": {
-                                "_0": {
-                                    "name": "Scalar Metric 1",
-                                    "scalar": 0
-                                }
+                                "name": "Scalar Metric 1",
+                                "scalar": 0
                             }
-                        },
-                        "recorded": true
+                        }
                     }
                 ],
                 "date": 705867495.55896401
@@ -331,26 +297,20 @@ class TestJsonToCsvParsing(unittest.TestCase):
                         "id": "metric_id_8",
                         "kind": {
                             "string": {
-                                "_0": {
-                                    "name": "String Metric 1",
-                                    "string": "string_1"
-                                }
+                                "name": "String Metric 1",
+                                "string": "string_1"
                             }
-                        },
-                        "recorded": true
+                        }
                     },
                     {
                         "group": "",
                         "id": "metric_id_9",
                         "kind": {
                             "scalar": {
-                                "_0": {
-                                    "name": "Scalar Metric 1",
-                                    "scalar": 2
-                                }
+                                "name": "Scalar Metric 1",
+                                "scalar": 2
                             }
-                        },
-                        "recorded": true
+                        }
                     }
                 ],
                 "date": 702429159.13179898
