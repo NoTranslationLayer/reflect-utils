@@ -120,7 +120,7 @@ def convert_timestamp(apple_timestamp: float) -> str:
     # Convert the Apple timestamp to a Python timestamp
     # 978307200 is the number of seconds between 1970-01-01T00:00:00Z and 
     # 2001-01-01T00:00:00Z
-    timestamp = apple_timestamp + 978307200
+    timestamp = int(apple_timestamp) + 978307200
 
     # Convert the timestamp to datetime and adjust it to the local timezone
     local_tz = tz.tzlocal()
@@ -271,7 +271,7 @@ def parse_reflection(
         each column corresponds to a metric, and the updated metric type map.
     """
     name = reflection["name"]
-    apple_timestamp = reflection["date"]
+    apple_timestamp = reflection["timeRecorded"]
 
     existing_columns = (
         existing_df.columns.tolist() if existing_df is not None else []
